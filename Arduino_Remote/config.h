@@ -38,19 +38,6 @@ const byte RADIO_ADDRESS[6] = "ROVER";
 // Packet Structure
 // ==============================
 
-struct ControlPacket
-{
-    int joyX;
-    int joyY;
-
-    bool joyButton;
-
-    bool button1;
-    bool button2;
-    bool button3;
-    bool button4;
-
-    uint16_t checksum;
-};
+#include "packet.h"
 
 #endif
