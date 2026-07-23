@@ -19,14 +19,9 @@ void radioBegin()
 
 void sendPacket(ControlPacket &packet)
 {
-    packet.checksum =
-        packet.joyX +
-        packet.joyY +
-        packet.joyButton +
-        packet.button1 +
-        packet.button2 +
-        packet.button3 +
-        packet.button4;
+    packet.startByte = 0x55AA;
+
+    packet.checksum = calculateChecksum(packet);
 
     radio.write(&packet, sizeof(packet));
 }
