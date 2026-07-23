@@ -22,6 +22,8 @@ Author : Smart-Rover Project
 
 ControlPacket packet;
 
+uint16_t packetCounter = 0;
+
 void setup()
 {
     Serial.begin(115200);
@@ -41,6 +43,8 @@ void setup()
 void loop()
 {
     updateControls(packet);
+
+      packet.packetNumber = packetCounter++;
 
     sendPacket(packet);
 
