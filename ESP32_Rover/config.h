@@ -67,5 +67,6 @@ Battery -
 /**************** Rover *****************/
 
 #define MAX_SPEED       255
+#define RADIO_TIMEOUT 500
 
 #endif
