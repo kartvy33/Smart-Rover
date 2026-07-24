@@ -2,6 +2,7 @@
 #define CONFIG_H
 #define OBSTACLE_DISTANCE_CM 20
 #define CLIFF_DETECTED LOW
+#define LOW_BATTERY_PERCENT 15
 
 #include <Arduino.h>
 const uint8_t RADIO_ADDRESS[6] = "ROVER";
