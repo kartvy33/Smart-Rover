@@ -2,6 +2,8 @@
 #include "motors.h"
 #include "radio.h"
 #include "battery.h"
+#include "gps.h"
+#include "lcd.h"
 
 #define DEADZONE 100
 
@@ -10,6 +12,14 @@ void setup()
     Serial.begin(115200);
 
     batteryBegin();
+
+    gpsBegin();
+
+    lcdBegin();
+
+    lcdShowBoot();
+
+    delay(2000);
 
     motorsBegin();
 
@@ -97,4 +107,17 @@ void loop()
     Serial.print(batteryPercentage());
     Serial.println("%");
     }
+    gpsUpdate();
+
+static unsigned long lcdTimer = 0;
+
+if(millis() - lcdTimer > 500)
+{
+    lcdTimer = millis();
+
+    lcdShowStatus(
+        batteryPercentage(),
+        radioConnected(),
+        getSatellites());
+}
 }
