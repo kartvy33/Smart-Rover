@@ -125,6 +125,8 @@ void loop()
     {
         lcdTimer = millis();
 
+        lcdUpdate();
+
         lcdShowStatus(
             batteryPercentage(),
             radioConnected(),
