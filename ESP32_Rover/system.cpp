@@ -7,57 +7,65 @@
 #include "speaker.h"
 #include "motors.h"
 
-static bool emergency=false;
+static RoverState state=STATE_IDLE;
 
 void systemBegin()
 {
     speakerBegin();
+
+    state=STATE_IDLE;
 }
 
-bool emergencyStop()
+RoverState getSystemState()
 {
-    return emergency;
+    return state;
 }
 
 void systemUpdate()
 {
-    emergency=false;
+    speakerUpdate();
 
     if(!radioConnected())
     {
+        state=STATE_LOST_RADIO;
+
         roverStop();
 
-        beepLong();
-
-        emergency=true;
+        speakerLostRadio();
 
         return;
     }
 
     if(cliffDetected())
     {
+        state=STATE_CLIFF;
+
         roverStop();
 
-        cliffAlarm();
-
-        emergency=true;
+        speakerCliff();
 
         return;
     }
 
     if(obstacleDetected())
     {
+        state=STATE_OBSTACLE;
+
         roverStop();
 
-        obstacleAlarm();
-
-        emergency=true;
+        speakerObstacle();
 
         return;
     }
 
     if(batteryPercentage()<LOW_BATTERY_PERCENT)
     {
-        batteryAlarm();
+        state=STATE_LOW_BATTERY;
+
+        speakerLowBattery();
+    }
+    else
+    {
+        state=STATE_DRIVING;
     }
 }
