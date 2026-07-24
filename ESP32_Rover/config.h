@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 #include <Arduino.h>
+const uint8_t RADIO_ADDRESS[6] = "ROVER";
 
 /*=====================================================
                 SMART ROVER CONFIG
