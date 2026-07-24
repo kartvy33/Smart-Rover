@@ -30,7 +30,7 @@ void radioBegin()
 
     radio.setRetries(5,15);
 
-    radio.openReadingPipe(1,"ROVER");
+    radio.openReadingPipe(1, RADIO_ADDRESS); 
 
     radio.startListening();
 
