@@ -7,4 +7,6 @@ void startCameraServer();
 
 bool cameraBegin();
 
+bool cameraServerBegin();
+
 #endif
