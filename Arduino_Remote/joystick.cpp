@@ -17,8 +17,8 @@ void readJoystick(ControlPacket &packet)
     if (abs(y - JOY_CENTER) < JOY_DEADBAND)
         y = JOY_CENTER;
 
-    packet.joyX = x;
-    packet.joyY = y;
+    packet.joyX = x - 512;
+    packet.joyY = y - 512;
 
     packet.joyButton = !digitalRead(JOY_SW_PIN);
 }
