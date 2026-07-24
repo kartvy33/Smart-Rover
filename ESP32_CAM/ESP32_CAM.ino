@@ -7,6 +7,8 @@ void setup()
 {
     Serial.begin(115200);
 
+    servoBegin();
+
     Serial.println();
     Serial.println("========================");
     Serial.println(" SMART ROVER CAMERA ");
