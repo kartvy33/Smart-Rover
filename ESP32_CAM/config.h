@@ -1,5 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
+#define CAMERA_STREAM_PORT 80
 
 #include <Arduino.h>
 
