@@ -68,4 +68,9 @@ void systemUpdate()
     {
         state=STATE_DRIVING;
     }
+    bool emergencyStop()
+{
+    return getSystemState() != STATE_DRIVING &&
+           getSystemState() != STATE_IDLE;
+}
 }
