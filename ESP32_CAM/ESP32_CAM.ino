@@ -2,12 +2,16 @@
 
 #include "camera.h"
 #include "wifi_manager.h"
+#include "servo.h"
+#include "solar.h"
 
 void setup()
 {
     Serial.begin(115200);
 
     servoBegin();
+
+    solarBegin();
 
     Serial.println();
     Serial.println("========================");
@@ -33,4 +37,7 @@ void setup()
 
 void loop()
 {
+    solarUpdate();
+
+    delay(20);
 }
