@@ -8,7 +8,7 @@
 #define CE_PIN      7
 #define CSN_PIN     8
 
-const byte RADIO_ADDRESS[6] = "ROVER";
+const uint8_t RADIO_ADDRESS[6] = "ROVER";
 
 // ==============================
 // Joystick
