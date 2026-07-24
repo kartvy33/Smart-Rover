@@ -5,14 +5,18 @@
 
 void speakerBegin();
 
-void beepShort();
+void speakerUpdate();
 
-void beepLong();
+void speakerBeep(uint16_t frequency,uint16_t duration);
 
-void obstacleAlarm();
+void speakerStop();
 
-void cliffAlarm();
+void speakerObstacle();
 
-void batteryAlarm();
+void speakerCliff();
+
+void speakerLowBattery();
+
+void speakerLostRadio();
 
 #endif
