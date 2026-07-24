@@ -1,12 +1,15 @@
 #include "config.h"
 #include "motors.h"
 #include "radio.h"
+#include "battery.h"
 
 #define DEADZONE 100
 
 void setup()
 {
     Serial.begin(115200);
+
+    batteryBegin();
 
     motorsBegin();
 
@@ -80,5 +83,18 @@ void loop()
     if(!radioConnected())
     {
         roverStop();
+    }
+    static unsigned long lastBattery = 0;
+
+    if(millis() - lastBattery > 1000)
+    {
+    lastBattery = millis();
+
+    Serial.print("Battery: ");
+    Serial.print(batteryVoltage(),2);
+    Serial.print(" V  ");
+
+    Serial.print(batteryPercentage());
+    Serial.println("%");
     }
 }
