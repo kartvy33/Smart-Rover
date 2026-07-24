@@ -4,10 +4,16 @@
 #include "wifi_manager.h"
 #include "servo.h"
 #include "solar.h"
+#include "dht.h"
+#include "rain.h"
 
 void setup()
 {
     Serial.begin(115200);
+
+    dhtBegin();
+
+    rainBegin();
 
     servoBegin();
 
@@ -37,7 +43,39 @@ void setup()
 
 void loop()
 {
+    void loop()
+{
+    dhtUpdate();
+
+    rainUpdate();
+
     solarUpdate();
 
-    delay(20);
+    static unsigned long timer=0;
+
+    if(millis()-timer>2000)
+    {
+        timer=millis();
+
+        Serial.println("====================");
+
+        Serial.print("Temperature : ");
+        Serial.print(getTemperature());
+        Serial.println(" C");
+
+        Serial.print("Humidity : ");
+        Serial.print(getHumidity());
+        Serial.println(" %");
+
+        Serial.print("Rain ADC : ");
+        Serial.println(getRainValue());
+
+        if(isRaining())
+            Serial.println("RAIN DETECTED");
+        else
+            Serial.println("NO RAIN");
+
+        Serial.println("====================");
+    }
+}
 }
