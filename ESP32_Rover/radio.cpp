@@ -1,6 +1,6 @@
 #include "radio.h"
 
-RF24 radio(NRF_CE, NRF_CSN);
+RF24 radio(RADIO_CE, RADIO_CSN);
 
 ControlPacket packet;
 
