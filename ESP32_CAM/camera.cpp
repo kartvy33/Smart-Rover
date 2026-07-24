@@ -61,4 +61,15 @@ bool cameraBegin()
     Serial.println("Camera OK");
 
     return true;
+
+    extern void startCameraServer();
+
+bool cameraServerBegin()
+{
+    startCameraServer();
+
+    Serial.println("Camera Server Started");
+
+    return true;
+}
 }
