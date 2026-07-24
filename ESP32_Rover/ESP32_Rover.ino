@@ -4,12 +4,18 @@
 #include "battery.h"
 #include "gps.h"
 #include "lcd.h"
+#include "ultrasonic.h"
+#include "ir.h"
 
 #define DEADZONE 100
 
 void setup()
 {
     Serial.begin(115200);
+
+    ultrasonicBegin();
+
+    irBegin();
 
     batteryBegin();
 
@@ -33,6 +39,7 @@ void setup()
 
 void loop()
 {
+    gpsUpdate();
     if(receivePacket())
     {
         int x = packet.joyX;
@@ -119,5 +126,22 @@ if(millis() - lcdTimer > 500)
         batteryPercentage(),
         radioConnected(),
         getSatellites());
+}
+    if(cliffDetected())
+{
+    roverStop();
+
+    Serial.println("CLIFF DETECTED");
+
+    return;
+}
+
+if(obstacleDetected())
+{
+    roverStop();
+
+    Serial.println("OBSTACLE");
+
+    return;
 }
 }
