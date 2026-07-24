@@ -43,6 +43,9 @@ void setup()
 void loop()
 {
     updateControls(packet);
+      
+      packet.joyX = packet.joyX - 512;
+      packet.joyY = packet.joyY - 512;
 
       packet.packetNumber = packetCounter++;
 
