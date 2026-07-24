@@ -1,39 +1,77 @@
 #include "speaker.h"
 #include "config.h"
 
+static bool speakerActive=false;
+static unsigned long speakerStopTime=0;
+
 void speakerBegin()
 {
-    #define SPEAKER_CHANNEL 7
-    #define SPEAKER_RESOLUTION 8
+    ledcSetup(
+        SPEAKER_CHANNEL,
+        2000,
+        SPEAKER_RESOLUTION);
 
-    ledcSetup(SPEAKER_CHANNEL, 2000, SPEAKER_RESOLUTION);
-    ledcAttachPin(SPEAKER_PIN, SPEAKER_CHANNEL);
-    ledcWrite(SPEAKER_CHANNEL, 0);
+    ledcAttachPin(
+        SPEAKER_PIN,
+        SPEAKER_CHANNEL);
+
+    ledcWriteTone(
+        SPEAKER_CHANNEL,
+        0);
 }
 
-void beepShort()
+void speakerBeep(
+    uint16_t frequency,
+    uint16_t duration)
 {
-    ledcWriteTone(SPEAKER_CHANNEL, 2000);
-    delay(100);
-    ledcWriteTone(SPEAKER_CHANNEL, 0);
+    ledcWriteTone(
+        SPEAKER_CHANNEL,
+        frequency);
+
+    speakerStopTime=millis()+duration;
+
+    speakerActive=true;
 }
 
-void beepLong()
+void speakerUpdate()
 {
-    tone(SPEAKER_PIN,1200,500);
+    if(
+        speakerActive &&
+        millis()>speakerStopTime)
+    {
+        ledcWriteTone(
+            SPEAKER_CHANNEL,
+            0);
+
+        speakerActive=false;
+    }
 }
 
-void obstacleAlarm()
+void speakerStop()
 {
-    tone(SPEAKER_PIN,1800,150);
+    ledcWriteTone(
+        SPEAKER_CHANNEL,
+        0);
+
+    speakerActive=false;
 }
 
-void cliffAlarm()
+void speakerObstacle()
 {
-    tone(SPEAKER_PIN,2500,300);
+    speakerBeep(1800,120);
 }
 
-void batteryAlarm()
+void speakerCliff()
 {
-    tone(SPEAKER_PIN,900,500);
+    speakerBeep(2600,300);
+}
+
+void speakerLowBattery()
+{
+    speakerBeep(900,500);
+}
+
+void speakerLostRadio()
+{
+    speakerBeep(1200,700);
 }
