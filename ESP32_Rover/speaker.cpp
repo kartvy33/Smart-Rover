@@ -3,14 +3,19 @@
 
 void speakerBegin()
 {
-    pinMode(SPEAKER_PIN,OUTPUT);
+    #define SPEAKER_CHANNEL 7
+    #define SPEAKER_RESOLUTION 8
 
-    digitalWrite(SPEAKER_PIN,LOW);
+    ledcSetup(SPEAKER_CHANNEL, 2000, SPEAKER_RESOLUTION);
+    ledcAttachPin(SPEAKER_PIN, SPEAKER_CHANNEL);
+    ledcWrite(SPEAKER_CHANNEL, 0);
 }
 
 void beepShort()
 {
-    tone(SPEAKER_PIN,2000,100);
+    ledcWriteTone(SPEAKER_CHANNEL, 2000);
+    delay(100);
+    ledcWriteTone(SPEAKER_CHANNEL, 0);
 }
 
 void beepLong()
