@@ -14,11 +14,10 @@ enum RoverState
 };
 
 void systemBegin();
-
-bool emergencyStop();
-
 void systemUpdate();
 
 RoverState getSystemState();
+
+bool emergencyStop();    // <-- Add this
 
 #endif
