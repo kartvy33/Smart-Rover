@@ -1,4 +1,12 @@
+/*
+=========================================================
+ SMART ROVER
+ Main Program
+=========================================================
+*/
+
 #include "config.h"
+
 #include "motors.h"
 #include "radio.h"
 #include "battery.h"
@@ -6,16 +14,26 @@
 #include "lcd.h"
 #include "ultrasonic.h"
 #include "ir.h"
+#include "speaker.h"
+#include "system.h"
 
 #define DEADZONE 100
+
+unsigned long batteryTimer = 0;
+unsigned long lcdTimer = 0;
 
 void setup()
 {
     Serial.begin(115200);
 
-    ultrasonicBegin();
+    Serial.println();
+    Serial.println("================================");
+    Serial.println(" SMART ROVER STARTING...");
+    Serial.println("================================");
 
-    irBegin();
+    motorsBegin();
+
+    radioBegin();
 
     batteryBegin();
 
@@ -23,125 +41,107 @@ void setup()
 
     lcdBegin();
 
+    ultrasonicBegin();
+
+    irBegin();
+
+    systemBegin();
+
     lcdShowBoot();
 
     delay(2000);
 
-    motorsBegin();
-
-    radioBegin();
-
-    Serial.println();
-    Serial.println("========================");
-    Serial.println("SMART ROVER READY");
-    Serial.println("========================");
+    Serial.println("Initialization Complete.");
 }
 
 void loop()
 {
+    // Keep GPS data updated
     gpsUpdate();
-    if(receivePacket())
+
+    // Handle all safety systems
+    systemUpdate();
+
+    // Stop processing if the system is in emergency mode
+    if (emergencyStop())
+    {
+        return;
+    }
+
+    // Receive remote control packet
+    if (receivePacket())
     {
         int x = packet.joyX;
         int y = packet.joyY;
 
-        Serial.print("X: ");
+        Serial.print("Joystick X: ");
         Serial.print(x);
-
         Serial.print("  Y: ");
         Serial.println(y);
 
         // Stop
-        if(abs(x) < DEADZONE && abs(y) < DEADZONE)
+        if (abs(x) < DEADZONE && abs(y) < DEADZONE)
         {
             roverStop();
         }
 
         // Forward
-        else if(y > DEADZONE)
+        else if (y > DEADZONE)
         {
-            if(x > DEADZONE)
+            if (x > DEADZONE)
                 roverForwardRight(MAX_SPEED);
-
-            else if(x < -DEADZONE)
+            else if (x < -DEADZONE)
                 roverForwardLeft(MAX_SPEED);
-
             else
                 roverForward(MAX_SPEED);
         }
 
         // Reverse
-        else if(y < -DEADZONE)
+        else if (y < -DEADZONE)
         {
-            if(x > DEADZONE)
+            if (x > DEADZONE)
                 roverReverseRight(MAX_SPEED);
-
-            else if(x < -DEADZONE)
+            else if (x < -DEADZONE)
                 roverReverseLeft(MAX_SPEED);
-
             else
                 roverReverse(MAX_SPEED);
         }
 
         // Rotate Right
-        else if(x > DEADZONE)
+        else if (x > DEADZONE)
         {
             roverRight(MAX_SPEED);
         }
 
         // Rotate Left
-        else if(x < -DEADZONE)
+        else if (x < -DEADZONE)
         {
             roverLeft(MAX_SPEED);
         }
     }
 
-    // Lost communication
-    if(!radioConnected())
+    // Update LCD every 500 ms
+    if (millis() - lcdTimer >= 500)
     {
-        roverStop();
-    }
-    static unsigned long lastBattery = 0;
+        lcdTimer = millis();
 
-    if(millis() - lastBattery > 1000)
+        lcdShowStatus(
+            batteryPercentage(),
+            radioConnected(),
+            getSatellites()
+        );
+    }
+
+    // Print battery status every second
+    if (millis() - batteryTimer >= 1000)
     {
-    lastBattery = millis();
+        batteryTimer = millis();
 
-    Serial.print("Battery: ");
-    Serial.print(batteryVoltage(),2);
-    Serial.print(" V  ");
+        Serial.print("Battery: ");
+        Serial.print(batteryVoltage(), 2);
+        Serial.print(" V   ");
 
-    Serial.print(batteryPercentage());
-    Serial.println("%");
+        Serial.print(batteryPercentage());
+        Serial.println("%");
     }
-    gpsUpdate();
-
-static unsigned long lcdTimer = 0;
-
-if(millis() - lcdTimer > 500)
-{
-    lcdTimer = millis();
-
-    lcdShowStatus(
-        batteryPercentage(),
-        radioConnected(),
-        getSatellites());
-}
-    if(cliffDetected())
-{
-    roverStop();
-
-    Serial.println("CLIFF DETECTED");
-
-    return;
-}
-
-if(obstacleDetected())
-{
-    roverStop();
-
-    Serial.println("OBSTACLE");
-
-    return;
-}
 }
