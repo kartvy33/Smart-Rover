@@ -3,10 +3,20 @@
 
 #include <Arduino.h>
 
+enum RoverState
+{
+    STATE_IDLE,
+    STATE_DRIVING,
+    STATE_OBSTACLE,
+    STATE_CLIFF,
+    STATE_LOW_BATTERY,
+    STATE_LOST_RADIO
+};
+
 void systemBegin();
 
 void systemUpdate();
 
-bool emergencyStop();
+RoverState getSystemState();
 
 #endif
