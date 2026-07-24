@@ -6,6 +6,7 @@
 #include "solar.h"
 #include "dht.h"
 #include "rain.h"
+#include "snapshot.h"
 
 void setup()
 {
@@ -50,6 +51,15 @@ void loop()
     rainUpdate();
 
     solarUpdate();
+
+    static unsigned long photoTimer=0;
+
+if(millis()-photoTimer>10000)
+{
+    photoTimer=millis();
+
+    capturePhoto();
+}
 
     static unsigned long timer=0;
 
