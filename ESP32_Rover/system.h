@@ -15,6 +15,8 @@ enum RoverState
 
 void systemBegin();
 
+bool emergencyStop();
+
 void systemUpdate();
 
 RoverState getSystemState();
