@@ -3,7 +3,6 @@
 #define RAIN_PIN 14
 
 static int rainValue=0;
-roverStatus.rain = raining;
 
 static bool raining=false;
 
@@ -20,6 +19,7 @@ void rainUpdate()
         raining=true;
     else
         raining=false;
+    roverStatus.rain = raining;
 }
 
 bool isRaining()
