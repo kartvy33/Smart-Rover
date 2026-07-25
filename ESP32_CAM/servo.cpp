@@ -10,6 +10,9 @@ Servo servoY;
 
 static int currentX = 90;
 static int currentY = 90;
+roverStatus.servoX = currentX;
+
+roverStatus.servoY = currentY;
 
 void servoBegin()
 {
