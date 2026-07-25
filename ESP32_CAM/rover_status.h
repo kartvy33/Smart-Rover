@@ -1,8 +1,5 @@
 #ifndef ROVER_STATUS_H
 #define ROVER_STATUS_H
-#include "command.h"
-
-extern RoverCommand currentCommand;
 
 struct RoverStatus
 {
