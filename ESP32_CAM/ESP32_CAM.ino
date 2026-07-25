@@ -1,4 +1,12 @@
-#include "config.h"
+/*
+======================================================
+ SMART ROVER
+ ESP32-CAM MAIN PROGRAM
+ Version 1.0
+======================================================
+*/
+
+#include <Arduino.h>
 
 #include "camera.h"
 #include "wifi_manager.h"
@@ -7,85 +15,97 @@
 #include "dht.h"
 #include "rain.h"
 #include "snapshot.h"
+#include "dashboard.h"
+#include "bridge.h"
+
+unsigned long sensorTimer = 0;
+unsigned long photoTimer = 0;
 
 void setup()
 {
     Serial.begin(115200);
 
-    dhtBegin();
+    Serial.println();
+    Serial.println("==================================");
+    Serial.println(" SMART ROVER ESP32-CAM STARTING");
+    Serial.println("==================================");
 
-    rainBegin();
+    cameraBegin();
+
+    wifiBegin();
+
+    cameraServerBegin();
 
     servoBegin();
 
     solarBegin();
 
-    Serial.println();
-    Serial.println("========================");
-    Serial.println(" SMART ROVER CAMERA ");
-    Serial.println("========================");
+    dhtBegin();
 
-    wifiBegin();
+    rainBegin();
 
-    if(cameraBegin())
-    {
-        Serial.println("Camera Initialized");
-    }
-    else
-    {
-        Serial.println("Camera Failed");
+    dashboardBegin();
 
-        while(true)
-        {
-            delay(1000);
-        }
-    }
+    bridgeBegin();
+
+    Serial.println("ESP32-CAM READY");
 }
 
 void loop()
 {
-    void loop()
-{
+    // Update modules
+    solarUpdate();
+
     dhtUpdate();
 
     rainUpdate();
 
-    solarUpdate();
+    dashboardUpdate();
 
-    static unsigned long photoTimer=0;
+    bridgeUpdate();
 
-if(millis()-photoTimer>10000)
-{
-    photoTimer=millis();
-
-    capturePhoto();
-}
-
-    static unsigned long timer=0;
-
-    if(millis()-timer>2000)
+    // Print sensor information every 2 seconds
+    if (millis() - sensorTimer >= 2000)
     {
-        timer=millis();
+        sensorTimer = millis();
 
-        Serial.println("====================");
+        Serial.println();
+
+        Serial.println("------------ STATUS ------------");
 
         Serial.print("Temperature : ");
         Serial.print(getTemperature());
         Serial.println(" C");
 
-        Serial.print("Humidity : ");
+        Serial.print("Humidity    : ");
         Serial.print(getHumidity());
         Serial.println(" %");
 
-        Serial.print("Rain ADC : ");
+        Serial.print("Rain ADC    : ");
         Serial.println(getRainValue());
 
-        if(isRaining())
-            Serial.println("RAIN DETECTED");
+        Serial.print("Rain Status : ");
+
+        if (isRaining())
+            Serial.println("RAIN");
         else
             Serial.println("NO RAIN");
 
-        Serial.println("====================");
+        Serial.println("-------------------------------");
     }
-}
+
+    // Take a test snapshot every 10 seconds
+    if (millis() - photoTimer >= 10000)
+    {
+        photoTimer = millis();
+
+        if (capturePhoto())
+        {
+            Serial.println("Snapshot OK");
+        }
+        else
+        {
+            Serial.println("Snapshot FAILED");
+        }
+    }
 }
