@@ -92,11 +92,40 @@ typedef struct
 static const char *_STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
 static const char *_STREAM_BOUNDARY = "\r\n--" PART_BOUNDARY "\r\n";
 static const char *_STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %u\r\nX-Timestamp: %d.%06d\r\n\r\n";
-static esp_err_t forward_handler(httpd_req_t *req);
-static esp_err_t backward_handler(httpd_req_t *req);
-static esp_err_t left_handler(httpd_req_t *req);
-static esp_err_t right_handler(httpd_req_t *req);
-static esp_err_t stop_handler(httpd_req_t *req);
+static esp_err_t forward_handler(httpd_req_t *req)
+{
+    setCommand(CMD_FORWARD);
+    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t backward_handler(httpd_req_t *req)
+{
+    setCommand(CMD_BACKWARD);
+    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t left_handler(httpd_req_t *req)
+{
+    setCommand(CMD_LEFT);
+    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t right_handler(httpd_req_t *req)
+{
+    setCommand(CMD_RIGHT);
+    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t stop_handler(httpd_req_t *req)
+{
+    setCommand(CMD_STOP);
+    httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
 
 httpd_handle_t stream_httpd = NULL;
 httpd_handle_t camera_httpd = NULL;
