@@ -1,5 +1,5 @@
 #include "servo.h"
-
+#include "rover_status.h"
 #include <ESP32Servo.h>
 
 #define SERVO_X_PIN 12
