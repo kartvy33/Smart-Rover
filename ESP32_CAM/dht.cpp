@@ -1,5 +1,5 @@
 #include "dht.h"
-
+#include "rover_status.h"
 #include <DHT.h>
 
 #define DHT_PIN 2
