@@ -3,12 +3,14 @@
 
 #include "esp_camera.h"
 
+extern void startCameraServer();
+
 bool cameraBegin()
 {
     camera_config_t config;
 
     config.ledc_channel = LEDC_CHANNEL_0;
-    config.ledc_timer = LEDC_TIMER_0;
+    config.ledc_timer   = LEDC_TIMER_0;
 
     config.pin_d0 = Y2_GPIO_NUM;
     config.pin_d1 = Y3_GPIO_NUM;
@@ -22,15 +24,14 @@ bool cameraBegin()
     config.pin_xclk = XCLK_GPIO_NUM;
 
     config.pin_pclk = PCLK_GPIO_NUM;
-
     config.pin_vsync = VSYNC_GPIO_NUM;
+    config.pin_href  = HREF_GPIO_NUM;
 
-    config.pin_href = HREF_GPIO_NUM;
+    // ESP32 Arduino 2.0.14 names
+    config.pin_sccb_sda = SIOD_GPIO_NUM;
+    config.pin_sccb_scl = SIOC_GPIO_NUM;
 
-    config.pin_sscb_sda = SIOD_GPIO_NUM;
-    config.pin_sscb_scl = SIOC_GPIO_NUM;
-
-    config.pin_pwdn = PWDN_GPIO_NUM;
+    config.pin_pwdn  = PWDN_GPIO_NUM;
     config.pin_reset = RESET_GPIO_NUM;
 
     config.xclk_freq_hz = 20000000;
@@ -61,8 +62,7 @@ bool cameraBegin()
     Serial.println("Camera OK");
 
     return true;
-
-    extern void startCameraServer();
+}
 
 bool cameraServerBegin()
 {
@@ -71,5 +71,4 @@ bool cameraServerBegin()
     Serial.println("Camera Server Started");
 
     return true;
-}
 }
