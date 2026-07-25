@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#include "json.h"
 #include "rover_status.h"
 
 String makeStatusJSON()
