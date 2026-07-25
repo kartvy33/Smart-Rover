@@ -9,9 +9,6 @@ DHT dht(DHT_PIN,DHT_TYPE);
 
 static float temperature=0;
 static float humidity=0;
-roverStatus.temperature = temperature;
-
-roverStatus.humidity = humidity;
 
 static unsigned long previousRead=0;
 
@@ -35,6 +32,9 @@ void dhtUpdate()
 
     if(!isnan(h))
         humidity=h;
+    roverStatus.temperature = temperature;
+
+    roverStatus.humidity = humidity;
 }
 
 float getTemperature()
