@@ -1,213 +1,156 @@
 #include "camera_servo.h"
+#include "config.h"
+
 #include <Arduino.h>
 #include <ESP32Servo.h>
 
-// ============================================================
-// Servo objects
-// ============================================================
+// ======================================================
+// Camera servo objects
+// ======================================================
 
 static Servo panServo;
 static Servo tiltServo;
 
-// ============================================================
+// ======================================================
 // Current positions
-// ============================================================
+// ======================================================
 
-static int currentPan = CAMERA_PAN_CENTER;
-static int currentTilt = CAMERA_TILT_CENTER;
+static int cameraPan  = 90;
+static int cameraTilt = 90;
 
-// ============================================================
-// Movement settings
-// ============================================================
+// ======================================================
+// Servo limits
+// ======================================================
 
-static const int SERVO_STEP = 5;
+static const int PAN_MIN  = 0;
+static const int PAN_MAX  = 180;
 
-// ============================================================
-// Camera servo initialization
-// ============================================================
+static const int TILT_MIN = 20;
+static const int TILT_MAX = 160;
+
+// ======================================================
+// Servo pins
+// ======================================================
+
+#ifndef CAMERA_PAN_SERVO_PIN
+#define CAMERA_PAN_SERVO_PIN 13
+#endif
+
+#ifndef CAMERA_TILT_SERVO_PIN
+#define CAMERA_TILT_SERVO_PIN 14
+#endif
+
+// ======================================================
+// Begin
+// ======================================================
 
 void cameraServoBegin()
 {
-    Serial.println();
-    Serial.println("Initializing camera pan/tilt servos...");
-
-    // 50 Hz is standard for SG90 servos
     panServo.setPeriodHertz(50);
     tiltServo.setPeriodHertz(50);
 
-    // Attach servos
     panServo.attach(
-        CAMERA_PAN_PIN,
+        CAMERA_PAN_SERVO_PIN,
         500,
         2400
     );
 
     tiltServo.attach(
-        CAMERA_TILT_PIN,
+        CAMERA_TILT_SERVO_PIN,
         500,
         2400
     );
 
-    // Start in center position
-    currentPan = CAMERA_PAN_CENTER;
-    currentTilt = CAMERA_TILT_CENTER;
+    cameraPan = 90;
+    cameraTilt = 90;
 
-    panServo.write(currentPan);
-    tiltServo.write(currentTilt);
+    panServo.write(cameraPan);
+    tiltServo.write(cameraTilt);
 
     delay(300);
 
-    Serial.println("Camera pan/tilt servos initialized.");
-
-    Serial.print("Pan position: ");
-    Serial.println(currentPan);
-
-    Serial.print("Tilt position: ");
-    Serial.println(currentTilt);
+    Serial.println("Camera servos initialized");
 }
 
-// ============================================================
-// Servo update
-// ============================================================
-
-void cameraServoUpdate()
-{
-    /*
-     * The ESP32Servo library maintains the servo signal
-     * automatically.
-     *
-     * This function is intentionally kept for the main
-     * project update loop and future web/remote commands.
-     */
-}
-
-// ============================================================
-// Set PAN position
-// ============================================================
-
-void cameraPan(int angle)
-{
-    angle = constrain(
-        angle,
-        CAMERA_PAN_MIN,
-        CAMERA_PAN_MAX
-    );
-
-    currentPan = angle;
-
-    panServo.write(currentPan);
-}
-
-// ============================================================
-// Set TILT position
-// ============================================================
-
-void cameraTilt(int angle)
-{
-    angle = constrain(
-        angle,
-        CAMERA_TILT_MIN,
-        CAMERA_TILT_MAX
-    );
-
-    currentTilt = angle;
-
-    tiltServo.write(currentTilt);
-}
-
-// ============================================================
-// PAN LEFT
-// ============================================================
-
-void cameraPanLeft()
-{
-    currentPan -= SERVO_STEP;
-
-    if (currentPan < CAMERA_PAN_MIN)
-    {
-        currentPan = CAMERA_PAN_MIN;
-    }
-
-    panServo.write(currentPan);
-}
-
-// ============================================================
-// PAN RIGHT
-// ============================================================
-
-void cameraPanRight()
-{
-    currentPan += SERVO_STEP;
-
-    if (currentPan > CAMERA_PAN_MAX)
-    {
-        currentPan = CAMERA_PAN_MAX;
-    }
-
-    panServo.write(currentPan);
-}
-
-// ============================================================
-// TILT UP
-// ============================================================
-
-void cameraTiltUp()
-{
-    currentTilt += SERVO_STEP;
-
-    if (currentTilt > CAMERA_TILT_MAX)
-    {
-        currentTilt = CAMERA_TILT_MAX;
-    }
-
-    tiltServo.write(currentTilt);
-}
-
-// ============================================================
-// TILT DOWN
-// ============================================================
-
-void cameraTiltDown()
-{
-    currentTilt -= SERVO_STEP;
-
-    if (currentTilt < CAMERA_TILT_MIN)
-    {
-        currentTilt = CAMERA_TILT_MIN;
-    }
-
-    tiltServo.write(currentTilt);
-}
-
-// ============================================================
-// CENTER CAMERA
-// ============================================================
+// ======================================================
+// Center camera
+// ======================================================
 
 void cameraServoCenter()
 {
-    currentPan = CAMERA_PAN_CENTER;
-    currentTilt = CAMERA_TILT_CENTER;
+    cameraPan = 90;
+    cameraTilt = 90;
 
-    panServo.write(currentPan);
-    tiltServo.write(currentTilt);
+    panServo.write(cameraPan);
+    tiltServo.write(cameraTilt);
 
-    Serial.println("Camera centered.");
+    Serial.println("Camera centered");
 }
 
-// ============================================================
-// GET PAN POSITION
-// ============================================================
+// ======================================================
+// Move camera
+//
+// panChange:
+//   positive = right
+//   negative = left
+//
+// tiltChange:
+//   positive = down
+//   negative = up
+// ======================================================
+
+void cameraServoMove(int panChange, int tiltChange)
+{
+    cameraPan += panChange;
+    cameraTilt += tiltChange;
+
+    cameraPan = constrain(
+        cameraPan,
+        PAN_MIN,
+        PAN_MAX
+    );
+
+    cameraTilt = constrain(
+        cameraTilt,
+        TILT_MIN,
+        TILT_MAX
+    );
+
+    panServo.write(cameraPan);
+    tiltServo.write(cameraTilt);
+
+    Serial.print("Camera Pan: ");
+    Serial.print(cameraPan);
+
+    Serial.print(" | Tilt: ");
+    Serial.println(cameraTilt);
+}
+
+// ======================================================
+// Update
+// ======================================================
+
+void cameraServoUpdate()
+{
+    // Reserved for future smooth servo movement.
+    // Currently movement is handled directly by
+    // cameraServoMove().
+}
+
+// ======================================================
+// Get pan position
+// ======================================================
 
 int getCameraPan()
 {
-    return currentPan;
+    return cameraPan;
 }
 
-// ============================================================
-// GET TILT POSITION
-// ============================================================
+// ======================================================
+// Get tilt position
+// ======================================================
 
 int getCameraTilt()
 {
-    return currentTilt;
+    return cameraTilt;
 }
