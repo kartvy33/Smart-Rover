@@ -1,33 +1,26 @@
 #include "rain.h"
+#include "config.h"
 
-#define RAIN_PIN 14
-
-static int rainValue=0;
-
-static bool raining=false;
+static bool raining = false;
 
 void rainBegin()
 {
-    pinMode(RAIN_PIN,INPUT);
+    pinMode(RAIN_SENSOR_PIN, INPUT);
+
+    raining = false;
+
+    Serial.println("Rain sensor OK");
 }
 
 void rainUpdate()
 {
-    rainValue=analogRead(RAIN_PIN);
+    int sensorValue = digitalRead(RAIN_SENSOR_PIN);
 
-    if(rainValue<1800)
-        raining=true;
-    else
-        raining=false;
-    roverStatus.rain = raining;
+    // Change HIGH/LOW here if your sensor works opposite.
+    raining = (sensorValue == LOW);
 }
 
 bool isRaining()
 {
     return raining;
-}
-
-int getRainValue()
-{
-    return rainValue;
 }
