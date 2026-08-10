@@ -4,11 +4,8 @@
 #include <Arduino.h>
 
 void rainBegin();
-
 void rainUpdate();
 
 bool isRaining();
-
-int getRainValue();
 
 #endif
