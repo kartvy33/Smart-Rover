@@ -45,6 +45,8 @@ void cameraTiltDown();
 
 void cameraServoCenter();
 
+void cameraServoMove(int panChange, int tiltChange);
+
 int getCameraPan();
 int getCameraTilt();
 
