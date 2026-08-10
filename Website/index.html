@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Rover Control</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div><h1>Smart Rover</h1><p>Remote control & telemetry</p></div>
+  <div class="status"><span id="connectionDot"></span><span id="connectionText">Offline</span></div>
+</header>
+<main class="grid">
+<section class="card video-card">
+  <div class="card-head"><h2>Camera</h2><button id="fullscreenBtn" class="small">Fullscreen</button></div>
+  <div class="video-wrap"><img id="cameraFeed" alt="ESP32-CAM stream"><div id="cameraPlaceholder">Camera stream<br><small>Set the ESP32-CAM URL in Settings.</small></div></div>
+  <div class="camera-controls">
+    <button data-cam="up">▲</button>
+    <div><button data-cam="left">◀</button><button data-cam="center">●</button><button data-cam="right">▶</button></div>
+    <button data-cam="down">▼</button>
+  </div>
+</section>
+<section class="card drive-card">
+  <h2>Rover Control</h2>
+  <div class="dpad">
+    <button data-drive="forward">▲<span>Forward</span></button>
+    <button data-drive="left">◀<span>Left</span></button>
+    <button data-drive="stop" class="stop">■<span>Stop</span></button>
+    <button data-drive="right">▶<span>Right</span></button>
+    <button data-drive="backward">▼<span>Backward</span></button>
+  </div>
+  <label>Speed <output id="speedValue">70%</output></label>
+  <input id="speed" type="range" min="0" max="100" value="70">
+  <button id="emergency" class="danger">EMERGENCY STOP</button>
+</section>
+<section class="card telemetry"><h2>Telemetry</h2><div class="stats">
+  <div><span>Battery</span><strong id="battery">--%</strong></div>
+  <div><span>Temperature</span><strong id="temperature">-- °C</strong></div>
+  <div><span>Humidity</span><strong id="humidity">--%</strong></div>
+  <div><span>Rain</span><strong id="rain">--</strong></div>
+  <div><span>Distance</span><strong id="distance">-- cm</strong></div>
+  <div><span>GPS</span><strong id="gps">--</strong></div>
+</div></section>
+<section class="card radar"><h2>Radar</h2><canvas id="radarCanvas" width="420" height="260"></canvas><p id="radarText">No radar data</p></section>
+<section class="card speaker"><h2>Speaker</h2><div class="row"><input id="speakerText" maxlength="120" placeholder="Type a message for the rover"><button id="speakBtn">Speak</button></div></section>
+<section class="card settings"><h2>Connection Settings</h2>
+<label>Rover API URL<input id="roverUrl" placeholder="http://192.168.4.1"></label>
+<label>ESP32-CAM URL<input id="camUrl" placeholder="http://192.168.4.2"></label>
+<button id="saveSettings">Save Settings</button>
+<p class="muted">The browser must be able to reach the ESP32 devices on the same network.</p>
+</section>
+</main>
+<footer>Smart Rover • Local control interface</footer>
+<script src="app.js"></script>
+</body>
+</html>
