@@ -34,6 +34,7 @@
 #include "rain.h"
 #include "snapshot.h"
 #include "json.h"
+#include "app_httpd.h"
 
 // ------------------------------------------------------------
 // Optional modules
