@@ -1,57 +1,505 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Rover Control</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Smart Rover</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
 <header class="topbar">
-  <div><h1>Smart Rover</h1><p>Remote control & telemetry</p></div>
-  <div class="status"><span id="connectionDot"></span><span id="connectionText">Offline</span></div>
+
+    <div>
+        <h1>🤖 Smart Rover</h1>
+        <p>Intelligent Rover Control System</p>
+    </div>
+
+    <div class="connection">
+        <span id="connectionDot" class="dot offline"></span>
+        <span id="connectionText">Connecting...</span>
+    </div>
+
 </header>
-<main class="grid">
-<section class="card video-card">
-  <div class="card-head"><h2>Camera</h2><button id="fullscreenBtn" class="small">Fullscreen</button></div>
-  <div class="video-wrap"><img id="cameraFeed" alt="ESP32-CAM stream"><div id="cameraPlaceholder">Camera stream<br><small>Set the ESP32-CAM URL in Settings.</small></div></div>
-  <div class="camera-controls">
-    <button data-cam="up">▲</button>
-    <div><button data-cam="left">◀</button><button data-cam="center">●</button><button data-cam="right">▶</button></div>
-    <button data-cam="down">▼</button>
-  </div>
-</section>
-<section class="card drive-card">
-  <h2>Rover Control</h2>
-  <div class="dpad">
-    <button data-drive="forward">▲<span>Forward</span></button>
-    <button data-drive="left">◀<span>Left</span></button>
-    <button data-drive="stop" class="stop">■<span>Stop</span></button>
-    <button data-drive="right">▶<span>Right</span></button>
-    <button data-drive="backward">▼<span>Backward</span></button>
-  </div>
-  <label>Speed <output id="speedValue">70%</output></label>
-  <input id="speed" type="range" min="0" max="100" value="70">
-  <button id="emergency" class="danger">EMERGENCY STOP</button>
-</section>
-<section class="card telemetry"><h2>Telemetry</h2><div class="stats">
-  <div><span>Battery</span><strong id="battery">--%</strong></div>
-  <div><span>Temperature</span><strong id="temperature">-- °C</strong></div>
-  <div><span>Humidity</span><strong id="humidity">--%</strong></div>
-  <div><span>Rain</span><strong id="rain">--</strong></div>
-  <div><span>Distance</span><strong id="distance">-- cm</strong></div>
-  <div><span>GPS</span><strong id="gps">--</strong></div>
-</div></section>
-<section class="card radar"><h2>Radar</h2><canvas id="radarCanvas" width="420" height="260"></canvas><p id="radarText">No radar data</p></section>
-<section class="card speaker"><h2>Speaker</h2><div class="row"><input id="speakerText" maxlength="120" placeholder="Type a message for the rover"><button id="speakBtn">Speak</button></div></section>
-<section class="card settings"><h2>Connection Settings</h2>
-<label>Rover API URL<input id="roverUrl" placeholder="http://192.168.4.1"></label>
-<label>ESP32-CAM URL<input id="camUrl" placeholder="http://192.168.4.2"></label>
-<button id="saveSettings">Save Settings</button>
-<p class="muted">The browser must be able to reach the ESP32 devices on the same network.</p>
-</section>
+
+
+<main class="dashboard">
+
+    <!-- =========================
+         CAMERA
+    ========================== -->
+
+    <section class="camera-card card">
+
+        <div class="card-title">
+            <h2>📷 Live Camera</h2>
+
+            <span id="cameraStatus" class="badge">
+                OFFLINE
+            </span>
+        </div>
+
+        <div class="camera-container">
+
+            <img
+                id="cameraStream"
+                src=""
+                alt="ESP32-CAM Stream"
+            >
+
+            <div
+                id="cameraPlaceholder"
+                class="camera-placeholder"
+            >
+                <div class="camera-icon">📷</div>
+                <p>Camera stream unavailable</p>
+
+                <button
+                    class="primary-button"
+                    onclick="openCamera()"
+                >
+                    Open Camera
+                </button>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         STATUS
+    ========================== -->
+
+    <section class="status-grid">
+
+        <div class="status-card card">
+            <span class="status-icon">🔋</span>
+
+            <div>
+                <p>Battery</p>
+                <h3>
+                    <span id="battery">--</span>%
+                </h3>
+
+                <small>
+                    <span id="voltage">--</span> V
+                </small>
+            </div>
+        </div>
+
+
+        <div class="status-card card">
+            <span class="status-icon">🛰️</span>
+
+            <div>
+                <p>GPS Satellites</p>
+                <h3 id="satellites">--</h3>
+                <small>Satellites connected</small>
+            </div>
+        </div>
+
+
+        <div class="status-card card">
+            <span class="status-icon">🌡️</span>
+
+            <div>
+                <p>Temperature</p>
+                <h3>
+                    <span id="temperature">--</span>°C
+                </h3>
+
+                <small>Environment</small>
+            </div>
+        </div>
+
+
+        <div class="status-card card">
+            <span class="status-icon">💧</span>
+
+            <div>
+                <p>Humidity</p>
+                <h3>
+                    <span id="humidity">--</span>%
+                </h3>
+
+                <small>Environment</small>
+            </div>
+        </div>
+
+
+        <div class="status-card card">
+            <span class="status-icon">🌧️</span>
+
+            <div>
+                <p>Rain</p>
+                <h3 id="rain">--</h3>
+
+                <small>Rain sensor</small>
+            </div>
+        </div>
+
+
+        <div class="status-card card">
+            <span class="status-icon">📡</span>
+
+            <div>
+                <p>Remote Radio</p>
+                <h3 id="radio">--</h3>
+
+                <small>NRF24 connection</small>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         ROVER CONTROL
+    ========================== -->
+
+    <section class="card control-card">
+
+        <div class="card-title">
+
+            <h2>🚗 Rover Control</h2>
+
+            <span
+                id="systemState"
+                class="badge"
+            >
+                UNKNOWN
+            </span>
+
+        </div>
+
+
+        <div class="control-pad">
+
+            <button
+                class="control-button forward"
+                onmousedown="move('forward')"
+                ontouchstart="move('forward')"
+            >
+                ▲
+                <span>Forward</span>
+            </button>
+
+
+            <div class="middle-controls">
+
+                <button
+                    class="control-button"
+                    onmousedown="move('left')"
+                    ontouchstart="move('left')"
+                >
+                    ◀
+                    <span>Left</span>
+                </button>
+
+
+                <button
+                    class="control-button stop"
+                    onclick="stopRover()"
+                >
+                    ■
+                    <span>STOP</span>
+                </button>
+
+
+                <button
+                    class="control-button"
+                    onmousedown="move('right')"
+                    ontouchstart="move('right')"
+                >
+                    ▶
+                    <span>Right</span>
+                </button>
+
+            </div>
+
+
+            <button
+                class="control-button backward"
+                onmousedown="move('backward')"
+                ontouchstart="move('backward')"
+            >
+                ▼
+                <span>Backward</span>
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         CAMERA CONTROL
+    ========================== -->
+
+    <section class="two-column">
+
+        <div class="card">
+
+            <div class="card-title">
+                <h2>🎥 Camera Control</h2>
+            </div>
+
+
+            <div class="camera-controls">
+
+                <button
+                    class="camera-button"
+                    onclick="cameraMove('up')"
+                >
+                    ▲
+                </button>
+
+
+                <div>
+
+                    <button
+                        class="camera-button"
+                        onclick="cameraMove('left')"
+                    >
+                        ◀
+                    </button>
+
+
+                    <button
+                        class="camera-button center"
+                        onclick="cameraCenter()"
+                    >
+                        ●
+                    </button>
+
+
+                    <button
+                        class="camera-button"
+                        onclick="cameraMove('right')"
+                    >
+                        ▶
+                    </button>
+
+                </div>
+
+
+                <button
+                    class="camera-button"
+                    onclick="cameraMove('down')"
+                >
+                    ▼
+                </button>
+
+            </div>
+
+            <p class="hint">
+                Pan: Left / Right &nbsp; • &nbsp;
+                Tilt: Up / Down
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             SAFETY
+        ========================== -->
+
+        <div class="card">
+
+            <div class="card-title">
+                <h2>🛡️ Safety</h2>
+            </div>
+
+
+            <div class="safety-row">
+
+                <span>🚧 Obstacle</span>
+
+                <strong id="obstacle">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="safety-row">
+
+                <span>🕳️ Cliff / Pit</span>
+
+                <strong id="cliff">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="safety-row">
+
+                <span>📶 Camera</span>
+
+                <strong id="cameraConnection">
+                    --
+                </strong>
+
+            </div>
+
+
+            <div class="safety-row">
+
+                <span>🔋 Battery</span>
+
+                <strong id="batterySafety">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         GPS
+    ========================== -->
+
+    <section class="card">
+
+        <div class="card-title">
+            <h2>📍 GPS Location</h2>
+        </div>
+
+
+        <div class="gps-grid">
+
+            <div>
+                <p>Latitude</p>
+                <strong id="latitude">
+                    --
+                </strong>
+            </div>
+
+
+            <div>
+                <p>Longitude</p>
+                <strong id="longitude">
+                    --
+                </strong>
+            </div>
+
+
+            <div>
+                <p>Altitude</p>
+                <strong id="altitude">
+                    --
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         SPEAKER
+    ========================== -->
+
+    <section class="card speaker-card">
+
+        <div class="card-title">
+            <h2>🔊 Rover Speaker</h2>
+        </div>
+
+
+        <div class="speaker-controls">
+
+            <input
+                id="speakerText"
+                type="text"
+                placeholder="Enter message..."
+                maxlength="100"
+            >
+
+
+            <button
+                class="primary-button"
+                onclick="speakText()"
+            >
+                🔊 Speak
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         SYSTEM INFORMATION
+    ========================== -->
+
+    <section class="card system-card">
+
+        <div class="card-title">
+            <h2>⚙️ System Information</h2>
+        </div>
+
+
+        <div class="system-grid">
+
+            <div>
+                <span>Rover IP</span>
+                <strong id="roverIP">--</strong>
+            </div>
+
+
+            <div>
+                <span>Camera IP</span>
+                <strong id="cameraIP">--</strong>
+            </div>
+
+
+            <div>
+                <span>Firmware</span>
+                <strong id="firmware">--</strong>
+            </div>
+
+
+            <div>
+                <span>Wi-Fi</span>
+                <strong id="wifiStatus">--</strong>
+            </div>
+
+        </div>
+
+    </section>
+
 </main>
-<footer>Smart Rover • Local control interface</footer>
+
+
+<footer>
+
+    <p>
+        Smart Rover © 2026
+    </p>
+
+    <p>
+        ESP32 WROOM • ESP32-CAM • Arduino UNO
+    </p>
+
+</footer>
+
+
 <script src="app.js"></script>
+
 </body>
+
 </html>
