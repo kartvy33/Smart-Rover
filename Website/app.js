@@ -1,568 +1,495 @@
-/* =========================================
-   SMART ROVER
-   Frontend Controller
-========================================= */
+/*
+=========================================================
+ SMART ROVER WEBSITE
+ ESP32-WROOM + ESP32-CAM
+=========================================================
+*/
 
 
-/* =========================================
-   Configuration
-========================================= */
+/* =====================================================
+   NETWORK CONFIGURATION
+   ===================================================== */
 
-const ROVER_IP = window.location.hostname || "192.168.4.1";
+// The website is served by the ESP32-WROOM.
+//
+// Therefore we use the same IP that the browser used
+// to open the website.
+//
+// Example:
+// http://192.168.4.1
+//
+const ROVER_IP = window.location.hostname;
 
-const CAMERA_IP = "192.168.4.3";
 
-const API_BASE = `http://${ROVER_IP}`;
+// Your ESP32-CAM IP
+const CAMERA_IP = "192.168.4.2";
 
 
-/* =========================================
-   Helper
-========================================= */
+/* =====================================================
+   URL HELPERS
+   ===================================================== */
 
-function api(path, options = {})
-{
-    return fetch(API_BASE + path, options);
+function roverURL(path) {
+    return "http://" + ROVER_IP + path;
+}
+
+function cameraURL(path) {
+    return "http://" + CAMERA_IP + path;
 }
 
 
-/* =========================================
-   Connection
-========================================= */
+/* =====================================================
+   ELEMENTS
+   ===================================================== */
 
-function setConnection(online)
-{
-    const dot =
-        document.getElementById("connectionDot");
+const connectionDot =
+    document.getElementById("connectionDot");
 
-    const text =
-        document.getElementById("connectionText");
+const connectionText =
+    document.getElementById("connectionText");
+
+const cameraStatus =
+    document.getElementById("cameraStatus");
+
+const roverIP =
+    document.getElementById("roverIP");
 
 
-    if (online)
-    {
-        dot.className = "dot online";
+/* =====================================================
+   CONNECTION STATUS
+   ===================================================== */
 
-        text.textContent = "Rover Online";
-    }
-    else
-    {
-        dot.className = "dot offline";
+function setOnline() {
 
-        text.textContent = "Rover Offline";
-    }
+    connectionDot.classList.remove("offline");
+
+    connectionDot.classList.add("online");
+
+    connectionText.textContent =
+        "Rover Connected";
 }
 
 
-/* =========================================
-   Rover Movement
-========================================= */
+function setOffline() {
 
-function move(direction)
-{
-    api("/" + direction)
-        .then(() =>
-        {
-            setConnection(true);
-        })
-        .catch(() =>
-        {
-            setConnection(false);
-        });
+    connectionDot.classList.remove("online");
+
+    connectionDot.classList.add("offline");
+
+    connectionText.textContent =
+        "Rover Offline";
 }
 
 
-function stopRover()
-{
-    api("/stop")
-        .then(() =>
-        {
-            setConnection(true);
-        })
-        .catch(() =>
-        {
-            setConnection(false);
-        });
+/* =====================================================
+   CAMERA
+   ===================================================== */
+
+function checkCamera() {
+
+    const frame =
+        document.getElementById("cameraFrame");
+
+    frame.src =
+        cameraURL("/");
+
+    cameraStatus.textContent =
+        "192.168.4.2";
 }
 
 
-/* =========================================
-   Camera
-========================================= */
+/* =====================================================
+   ROVER COMMAND
+   ===================================================== */
 
-function openCamera()
-{
-    window.open(
-        `http://${CAMERA_IP}/`,
-        "_blank"
-    );
-}
+async function sendCommand(command) {
 
+    try {
 
-function loadCamera()
-{
-    const stream =
-        document.getElementById("cameraStream");
+        const response =
+            await fetch(
+                roverURL("/" + command),
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
+            );
 
-    const placeholder =
-        document.getElementById("cameraPlaceholder");
+        if (response.ok) {
 
-    /*
-       Current ESP32-CAM web server
-       */
+            setOnline();
 
-    stream.src =
-        `http://${CAMERA_IP}/`;
+        } else {
 
-    /*
-       The ESP32-CAM webpage itself is not
-       necessarily an MJPEG image stream.
+            setOffline();
 
-       Therefore we don't display it as an
-       <img> until a proper stream endpoint
-       is available.
-       */
-
-    stream.style.display = "none";
-
-    placeholder.style.display = "block";
-}
-
-
-/* =========================================
-   Camera Movement
-========================================= */
-
-function cameraMove(direction)
-{
-    /*
-       These endpoints will be provided by
-       the ESP32-CAM HTTP server.
-    */
-
-    fetch(
-        `http://${CAMERA_IP}/camera_${direction}`,
-        {
-            method: "GET"
         }
-    )
-    .then(() =>
-    {
+
+    } catch (error) {
+
         console.log(
-            "Camera:",
-            direction
-        );
-    })
-    .catch(error =>
-    {
-        console.log(
-            "Camera command failed:",
+            "Command error:",
             error
         );
-    });
-}
 
-
-function cameraCenter()
-{
-    fetch(
-        `http://${CAMERA_IP}/camera_center`,
-        {
-            method: "GET"
-        }
-    )
-    .catch(error =>
-    {
-        console.log(error);
-    });
-}
-
-
-/* =========================================
-   Speaker
-========================================= */
-
-function speakText()
-{
-    const input =
-        document.getElementById("speakerText");
-
-    const text =
-        input.value.trim();
-
-
-    if (!text)
-    {
-        return;
-    }
-
-
-    fetch(
-        API_BASE +
-        "/speak?text=" +
-        encodeURIComponent(text)
-    )
-    .then(() =>
-    {
-        input.value = "";
-    })
-    .catch(error =>
-    {
-        console.log(
-            "Speaker error:",
-            error
-        );
-    });
-}
-
-
-/* =========================================
-   Status
-========================================= */
-
-function updateElement(
-    id,
-    value,
-    fallback = "--"
-)
-{
-    const element =
-        document.getElementById(id);
-
-
-    if (!element)
-    {
-        return;
-    }
-
-
-    if (
-        value === undefined ||
-        value === null ||
-        value === ""
-    )
-    {
-        element.textContent = fallback;
-    }
-    else
-    {
-        element.textContent = value;
+        setOffline();
     }
 }
 
 
-/* =========================================
-   Status API
-========================================= */
+/* =====================================================
+   ROVER MOVEMENT
+   ===================================================== */
 
-function updateStatus()
-{
-    api("/status")
+function forward() {
+    sendCommand("forward");
+}
 
-        .then(response =>
-        {
-            if (!response.ok)
-            {
-                throw new Error(
-                    "Status request failed"
-                );
-            }
+function backward() {
+    sendCommand("backward");
+}
 
-            return response.json();
-        })
+function left() {
+    sendCommand("left");
+}
 
-        .then(data =>
-        {
-            setConnection(true);
+function right() {
+    sendCommand("right");
+}
 
-
-            /*
-               Battery
-            */
-
-            updateElement(
-                "battery",
-                data.battery
-            );
-
-
-            updateElement(
-                "voltage",
-                data.voltage
-            );
-
-
-            /*
-               GPS
-            */
-
-            updateElement(
-                "satellites",
-                data.satellites
-            );
-
-
-            updateElement(
-                "latitude",
-                data.latitude
-            );
-
-
-            updateElement(
-                "longitude",
-                data.longitude
-            );
-
-
-            updateElement(
-                "altitude",
-                data.altitude
-            );
-
-
-            /*
-               Environment
-            */
-
-            updateElement(
-                "temperature",
-                data.temperature
-            );
-
-
-            updateElement(
-                "humidity",
-                data.humidity
-            );
-
-
-            updateElement(
-                "rain",
-                data.rain
-            );
-
-
-            /*
-               Radio
-            */
-
-            const radio =
-                data.radio
-                ? "Connected"
-                : "Disconnected";
-
-
-            updateElement(
-                "radio",
-                radio
-            );
-
-
-            /*
-               System
-            */
-
-            updateElement(
-                "systemState",
-                data.state
-            );
-
-
-            /*
-               Safety
-            */
-
-            updateElement(
-                "obstacle",
-                data.obstacle
-            );
-
-
-            updateElement(
-                "cliff",
-                data.cliff
-            );
-
-
-            updateElement(
-                "batterySafety",
-                data.batterySafety
-            );
-
-
-            /*
-               Camera
-            */
-
-            updateElement(
-                "cameraConnection",
-                data.camera
-                ? "Connected"
-                : "Disconnected"
-            );
-
-
-            /*
-               System information
-            */
-
-            updateElement(
-                "roverIP",
-                ROVER_IP
-            );
-
-
-            updateElement(
-                "cameraIP",
-                CAMERA_IP
-            );
-
-
-            updateElement(
-                "firmware",
-                data.firmware
-            );
-
-
-            updateElement(
-                "wifiStatus",
-                data.wifi
-                ? "Online"
-                : "Offline"
-            );
-        })
-
-        .catch(error =>
-        {
-            console.log(
-                "Status error:",
-                error
-            );
-
-            setConnection(false);
-        });
+function stop() {
+    sendCommand("stop");
 }
 
 
-/* =========================================
-   Keyboard Control
-========================================= */
+/* =====================================================
+   BUTTONS
+   ===================================================== */
+
+document
+    .getElementById("forwardBtn")
+    .addEventListener("click", forward);
+
+document
+    .getElementById("backwardBtn")
+    .addEventListener("click", backward);
+
+document
+    .getElementById("leftBtn")
+    .addEventListener("click", left);
+
+document
+    .getElementById("rightBtn")
+    .addEventListener("click", right);
+
+document
+    .getElementById("stopBtn")
+    .addEventListener("click", stop);
+
+
+/* =====================================================
+   KEYBOARD CONTROL
+   ===================================================== */
 
 document.addEventListener(
     "keydown",
-    function(event)
-    {
-        /*
-           Ignore keyboard when typing
-           in the speaker box.
-        */
+    function(event) {
 
-        if (
-            event.target.tagName ===
-            "INPUT"
-        )
-        {
-            return;
-        }
+        if (event.repeat) return;
 
+        switch (event.key) {
 
-        switch(event.key)
-        {
             case "ArrowUp":
             case "w":
             case "W":
-
-                move("forward");
-
+                forward();
                 break;
-
 
             case "ArrowDown":
             case "s":
             case "S":
-
-                move("backward");
-
+                backward();
                 break;
-
 
             case "ArrowLeft":
             case "a":
             case "A":
-
-                move("left");
-
+                left();
                 break;
-
 
             case "ArrowRight":
             case "d":
             case "D":
-
-                move("right");
-
+                right();
                 break;
 
-
             case " ":
-
-                stopRover();
-
+                stop();
                 break;
         }
     }
 );
 
 
-/* =========================================
-   Page Startup
-========================================= */
-
 document.addEventListener(
-    "DOMContentLoaded",
-    function()
-    {
-        /*
-           Show rover IP
-        */
+    "keyup",
+    function(event) {
 
-        updateElement(
-            "roverIP",
-            ROVER_IP
-        );
+        if (
+            event.key === "ArrowUp" ||
+            event.key === "ArrowDown" ||
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowRight" ||
+            event.key.toLowerCase() === "w" ||
+            event.key.toLowerCase() === "a" ||
+            event.key.toLowerCase() === "s" ||
+            event.key.toLowerCase() === "d"
+        ) {
 
+            stop();
 
-        /*
-           Camera IP
-        */
-
-        updateElement(
-            "cameraIP",
-            CAMERA_IP
-        );
-
-
-        /*
-           Load camera information
-        */
-
-        loadCamera();
-
-
-        /*
-           Get status immediately
-        */
-
-        updateStatus();
-
-
-        /*
-           Continue updating status
-           every second.
-        */
-
-        setInterval(
-            updateStatus,
-            1000
-        );
+        }
     }
 );
+
+
+/* =====================================================
+   CAMERA PAN / TILT
+   ===================================================== */
+
+function cameraUp() {
+
+    fetch(
+        cameraURL("/camera/up")
+    ).catch(console.log);
+}
+
+
+function cameraDown() {
+
+    fetch(
+        cameraURL("/camera/down")
+    ).catch(console.log);
+}
+
+
+function cameraLeft() {
+
+    fetch(
+        cameraURL("/camera/left")
+    ).catch(console.log);
+}
+
+
+function cameraRight() {
+
+    fetch(
+        cameraURL("/camera/right")
+    ).catch(console.log);
+}
+
+
+function cameraCenter() {
+
+    fetch(
+        cameraURL("/camera/center")
+    ).catch(console.log);
+}
+
+
+/* =====================================================
+   CAMERA BUTTONS
+   ===================================================== */
+
+document
+    .getElementById("cameraUp")
+    .addEventListener(
+        "click",
+        cameraUp
+    );
+
+document
+    .getElementById("cameraDown")
+    .addEventListener(
+        "click",
+        cameraDown
+    );
+
+document
+    .getElementById("cameraLeft")
+    .addEventListener(
+        "click",
+        cameraLeft
+    );
+
+document
+    .getElementById("cameraRight")
+    .addEventListener(
+        "click",
+        cameraRight
+    );
+
+document
+    .getElementById("cameraCenter")
+    .addEventListener(
+        "click",
+        cameraCenter
+    );
+
+
+/* =====================================================
+   ROVER STATUS
+   ===================================================== */
+
+async function updateStatus() {
+
+    try {
+
+        const response =
+            await fetch(
+                roverURL("/status"),
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+
+            setOffline();
+
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        setOnline();
+
+        updateStatusDisplay(data);
+
+    } catch (error) {
+
+        console.log(
+            "Status error:",
+            error
+        );
+
+        setOffline();
+    }
+}
+
+
+/* =====================================================
+   STATUS DISPLAY
+   ===================================================== */
+
+function updateStatusDisplay(data) {
+
+    if (data.battery !== undefined) {
+
+        document.getElementById(
+            "battery"
+        ).textContent =
+            data.battery;
+    }
+
+
+    if (data.satellites !== undefined) {
+
+        document.getElementById(
+            "satellites"
+        ).textContent =
+            data.satellites;
+    }
+
+
+    if (data.radio !== undefined) {
+
+        document.getElementById(
+            "radio"
+        ).textContent =
+            data.radio ?
+            "Connected" :
+            "Disconnected";
+    }
+
+
+    if (data.distance !== undefined) {
+
+        document.getElementById(
+            "distance"
+        ).textContent =
+            data.distance;
+    }
+
+
+    if (data.temperature !== undefined) {
+
+        document.getElementById(
+            "temperature"
+        ).textContent =
+            data.temperature;
+    }
+
+
+    if (data.humidity !== undefined) {
+
+        document.getElementById(
+            "humidity"
+        ).textContent =
+            data.humidity;
+    }
+
+
+    if (data.rain !== undefined) {
+
+        document.getElementById(
+            "rain"
+        ).textContent =
+            data.rain ?
+            "Detected" :
+            "No Rain";
+    }
+
+
+    if (data.pan !== undefined) {
+
+        document.getElementById(
+            "pan"
+        ).textContent =
+            data.pan;
+    }
+
+
+    if (data.tilt !== undefined) {
+
+        document.getElementById(
+            "tilt"
+        ).textContent =
+            data.tilt;
+    }
+}
+
+
+/* =====================================================
+   INITIALIZATION
+   ===================================================== */
+
+function initialize() {
+
+    roverIP.textContent =
+        ROVER_IP;
+
+    checkCamera();
+
+    updateStatus();
+
+    setInterval(
+        updateStatus,
+        1000
+    );
+}
+
+
+initialize();
