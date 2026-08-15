@@ -6,7 +6,7 @@
 */
 
 #include "config.h"
-
+#include "wifi.h"
 #include "motors.h"
 #include "radio.h"
 #include "battery.h"
@@ -26,10 +26,15 @@ void setup()
 {
     Serial.begin(115200);
 
+    delay(1000);
+
     Serial.println();
     Serial.println("================================");
     Serial.println(" SMART ROVER STARTING...");
     Serial.println("================================");
+
+    // Start Rover Wi-Fi FIRST
+    wifiBegin()
 
     motorsBegin();
 
