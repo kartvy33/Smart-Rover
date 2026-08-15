@@ -1,302 +1,442 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
 
-    <title>Smart Rover Control</title>
+<meta name="viewport"
+      content="width=device-width,initial-scale=1.0">
 
-    <link rel="stylesheet" href="style.css">
+<title>Smart Rover Control</title>
+
+<link rel="stylesheet"
+      href="style.css">
+
 </head>
 
 <body>
 
 <header class="topbar">
-    <div>
-        <h1>SMART ROVER</h1>
-        <p>ESP32 Rover Control System</p>
-    </div>
 
-    <div class="connection">
-        <span id="connectionDot" class="dot offline"></span>
-        <span id="connectionText">Connecting...</span>
-    </div>
+<div>
+
+<h1>SMART ROVER</h1>
+
+<p>ESP32-WROOM + ESP32-CAM</p>
+
+</div>
+
+<div class="connection">
+
+<span id="connectionDot"
+      class="dot offline"></span>
+
+<span id="connectionText">
+Connecting...
+</span>
+
+</div>
+
 </header>
 
 
 <main class="dashboard">
 
-    <!-- CAMERA -->
-    <section class="card camera-card">
 
-        <div class="card-title">
-            <h2>📷 Live Camera</h2>
+<section class="card">
 
-            <span id="cameraStatus" class="status">
-                Connecting
-            </span>
-        </div>
+<div class="card-title">
 
-        <div class="camera-container">
+<h2>📷 Live Camera</h2>
 
-            <iframe
-                id="cameraFrame"
-                src="http://192.168.4.2"
-                allowfullscreen>
-            </iframe>
+<span id="cameraStatus"
+      class="status">
+Connecting
+</span>
 
-        </div>
+</div>
 
-    </section>
+<div class="camera-container">
 
+<img
+id="cameraStream"
+src="http://192.168.4.2:81/stream"
+alt="ESP32-CAM Live Stream">
 
-    <!-- ROVER CONTROL -->
-    <section class="card">
+</div>
 
-        <div class="card-title">
-            <h2>🎮 Rover Control</h2>
-        </div>
+</section>
 
-        <div class="control-pad">
 
-            <button
-                class="control-button forward"
-                id="forwardBtn">
-                ▲
-                <span>FORWARD</span>
-            </button>
+<section class="card">
 
-            <div class="middle-controls">
+<div class="card-title">
 
-                <button
-                    class="control-button"
-                    id="leftBtn">
-                    ◀
-                    <span>LEFT</span>
-                </button>
+<h2>🎮 Rover Control</h2>
 
-                <button
-                    class="control-button stop"
-                    id="stopBtn">
-                    ■
-                    <span>STOP</span>
-                </button>
+</div>
 
-                <button
-                    class="control-button"
-                    id="rightBtn">
-                    ▶
-                    <span>RIGHT</span>
-                </button>
+<div class="control-pad">
 
-            </div>
+<button
+id="forwardBtn"
+class="control-button">
 
-            <button
-                class="control-button backward"
-                id="backwardBtn">
-                ▼
-                <span>BACKWARD</span>
-            </button>
+▲
 
-        </div>
+<span>FORWARD</span>
 
-    </section>
+</button>
 
 
-    <!-- CAMERA PAN / TILT -->
-    <section class="card">
+<div class="middle-controls">
 
-        <div class="card-title">
-            <h2>🎥 Camera Pan / Tilt</h2>
-        </div>
-
-        <div class="camera-controls">
+<button
+id="leftBtn"
+class="control-button">
 
-            <button id="cameraUp">
-                ▲
-                <small>UP</small>
-            </button>
-
-            <div class="camera-middle">
-
-                <button id="cameraLeft">
-                    ◀
-                    <small>LEFT</small>
-                </button>
-
-                <button id="cameraCenter">
-                    ●
-                    <small>CENTER</small>
-                </button>
-
-                <button id="cameraRight">
-                    ▶
-                    <small>RIGHT</small>
-                </button>
-
-            </div>
-
-            <button id="cameraDown">
-                ▼
-                <small>DOWN</small>
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- STATUS -->
-    <section class="status-grid">
-
-        <div class="status-card">
-            <div class="status-icon">🔋</div>
-            <div>
-                <p>Battery</p>
-                <h3>
-                    <span id="battery">--</span>%
-                </h3>
-            </div>
-        </div>
-
-
-        <div class="status-card">
-            <div class="status-icon">🛰️</div>
-            <div>
-                <p>GPS Satellites</p>
-                <h3 id="satellites">--</h3>
-            </div>
-        </div>
-
-
-        <div class="status-card">
-            <div class="status-icon">📡</div>
-            <div>
-                <p>Radio</p>
-                <h3 id="radio">--</h3>
-            </div>
-        </div>
-
-
-        <div class="status-card">
-            <div class="status-icon">📏</div>
-            <div>
-                <p>Obstacle</p>
-                <h3>
-                    <span id="distance">--</span> cm
-                </h3>
-            </div>
-        </div>
-
-
-        <div class="status-card">
-            <div class="status-icon">🌡️</div>
-            <div>
-                <p>Temperature</p>
-                <h3>
-                    <span id="temperature">--</span> °C
-                </h3>
-            </div>
-        </div>
-
-
-        <div class="status-card">
-            <div class="status-icon">💧</div>
-            <div>
-                <p>Humidity</p>
-                <h3>
-                    <span id="humidity">--</span>%
-                </h3>
-            </div>
-        </div>
-
-
-        <div class="status-card">
-            <div class="status-icon">🌧️</div>
-            <div>
-                <p>Rain</p>
-                <h3 id="rain">--</h3>
-            </div>
-        </div>
-
-
-        <div class="status-card">
-            <div class="status-icon">📍</div>
-            <div>
-                <p>Rover IP</p>
-                <h3 id="roverIP">--</h3>
-            </div>
-        </div>
-
-    </section>
-
-
-    <!-- CAMERA POSITION -->
-    <section class="card">
-
-        <div class="card-title">
-            <h2>Camera Position</h2>
-        </div>
-
-        <div class="position-grid">
-
-            <div>
-                <p>Pan</p>
-                <strong>
-                    <span id="pan">90</span>°
-                </strong>
-            </div>
-
-            <div>
-                <p>Tilt</p>
-                <strong>
-                    <span id="tilt">90</span>°
-                </strong>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- SYSTEM INFORMATION -->
-    <section class="card information">
-
-        <h2>ℹ️ System Information</h2>
-
-        <p>
-            <strong>Rover Controller:</strong>
-            ESP32-WROOM
-        </p>
-
-        <p>
-            <strong>Camera Controller:</strong>
-            ESP32-CAM
-        </p>
-
-        <p>
-            <strong>Camera IP:</strong>
-            192.168.4.2
-        </p>
-
-        <p>
-            <strong>Connection:</strong>
-            Local Wi-Fi
-        </p>
-
-    </section>
+◀
+
+<span>LEFT</span>
+
+</button>
+
+
+<button
+id="stopBtn"
+class="control-button stop">
+
+■
+
+<span>STOP</span>
+
+</button>
+
+
+<button
+id="rightBtn"
+class="control-button">
+
+▶
+
+<span>RIGHT</span>
+
+</button>
+
+</div>
+
+
+<button
+id="backwardBtn"
+class="control-button">
+
+▼
+
+<span>BACKWARD</span>
+
+</button>
+
+</div>
+
+</section>
+
+
+<section class="card">
+
+<div class="card-title">
+
+<h2>🎥 Camera Pan / Tilt</h2>
+
+</div>
+
+<div class="camera-controls">
+
+<button id="cameraUp">
+▲
+<small>UP</small>
+</button>
+
+<div class="camera-middle">
+
+<button id="cameraLeft">
+◀
+<small>LEFT</small>
+</button>
+
+<button id="cameraCenter">
+●
+<small>CENTER</small>
+</button>
+
+<button id="cameraRight">
+▶
+<small>RIGHT</small>
+</button>
+
+</div>
+
+<button id="cameraDown">
+▼
+<small>DOWN</small>
+</button>
+
+</div>
+
+</section>
+
+
+<section class="status-grid">
+
+
+<div class="status-card">
+
+<div class="status-icon">🔋</div>
+
+<div>
+
+<p>Battery</p>
+
+<h3>
+<span id="battery">--</span>%
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">⚡</div>
+
+<div>
+
+<p>Voltage</p>
+
+<h3>
+<span id="voltage">--</span> V
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">🛰️</div>
+
+<div>
+
+<p>GPS Satellites</p>
+
+<h3 id="satellites">
+--
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">📡</div>
+
+<div>
+
+<p>Radio</p>
+
+<h3 id="radio">
+--
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">📏</div>
+
+<div>
+
+<p>Obstacle</p>
+
+<h3>
+<span id="distance">--</span> cm
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">🌡️</div>
+
+<div>
+
+<p>Temperature</p>
+
+<h3>
+<span id="temperature">--</span> °C
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">💧</div>
+
+<div>
+
+<p>Humidity</p>
+
+<h3>
+<span id="humidity">--</span>%
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">🌧️</div>
+
+<div>
+
+<p>Rain</p>
+
+<h3 id="rain">
+--
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">📍</div>
+
+<div>
+
+<p>Rover IP</p>
+
+<h3 id="roverIP">
+192.168.4.1
+</h3>
+
+</div>
+
+</div>
+
+
+<div class="status-card">
+
+<div class="status-icon">📷</div>
+
+<div>
+
+<p>Camera</p>
+
+<h3 id="cameraConnection">
+--
+</h3>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="card">
+
+<div class="card-title">
+
+<h2>📐 Camera Position</h2>
+
+</div>
+
+<div class="position-grid">
+
+<div>
+
+<p>Pan</p>
+
+<strong>
+<span id="pan">90</span>°
+</strong>
+
+</div>
+
+<div>
+
+<p>Tilt</p>
+
+<strong>
+<span id="tilt">90</span>°
+</strong>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="card information">
+
+<h2>ℹ️ System Information</h2>
+
+<p>
+<strong>Rover:</strong>
+ESP32-WROOM
+</p>
+
+<p>
+<strong>Rover IP:</strong>
+192.168.4.1
+</p>
+
+<p>
+<strong>Camera:</strong>
+ESP32-CAM
+</p>
+
+<p>
+<strong>Camera IP:</strong>
+192.168.4.2
+</p>
+
+<p>
+<strong>Wi-Fi:</strong>
+Smart-Rover
+</p>
+
+</section>
 
 </main>
 
 
 <footer>
-    SMART ROVER © 2026
+SMART ROVER © 2026
 </footer>
 
 
 <script src="app.js"></script>
 
 </body>
+
 </html>
