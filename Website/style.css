@@ -1,707 +1,384 @@
-/* =========================================
-   SMART ROVER
-   Main Website Style
-========================================= */
-
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
-
 
 body {
-    margin: 0;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background:
-        #0b0f14;
-
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0b1120;
     color: #ffffff;
+    min-height: 100vh;
 }
 
 
-/* =========================================
+/* =========================
    TOP BAR
-========================================= */
+   ========================= */
 
 .topbar {
+    background: #111827;
+    border-bottom: 1px solid #263244;
+
+    padding: 18px 25px;
 
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
 
-    padding: 18px 30px;
-
-    background: #111820;
-
-    border-bottom:
-        1px solid #26313c;
-
     position: sticky;
-
     top: 0;
-
-    z-index: 10;
+    z-index: 100;
 }
-
 
 .topbar h1 {
+    font-size: 25px;
+    letter-spacing: 2px;
+}
 
-    margin: 0;
-
-    font-size: 28px;
+.topbar p {
+    color: #9ca3af;
+    margin-top: 4px;
 }
 
 
-.topbar p {
+/* =========================
+   CONNECTION
+   ========================= */
 
-    margin:
-        5px 0 0;
-
-    color: #8996a3;
+.connection {
+    display: flex;
+    align-items: center;
+    gap: 9px;
 
     font-size: 14px;
 }
 
-
-.connection {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    font-weight: bold;
-}
-
-
 .dot {
-
-    width: 12px;
-
-    height: 12px;
+    width: 11px;
+    height: 11px;
 
     border-radius: 50%;
+}
 
-    display: inline-block;
+.online {
+    background: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+}
+
+.offline {
+    background: #ef4444;
 }
 
 
-.dot.online {
-
-    background: #25d366;
-
-    box-shadow:
-        0 0 10px #25d366;
-}
-
-
-.dot.offline {
-
-    background: #e53935;
-}
-
-
-/* =========================================
+/* =========================
    DASHBOARD
-========================================= */
+   ========================= */
 
 .dashboard {
+    width: min(1200px, 94%);
+    margin: 25px auto;
 
-    width: 95%;
-
-    max-width: 1200px;
-
-    margin:
-        25px auto;
-
-    display: flex;
-
-    flex-direction: column;
-
+    display: grid;
     gap: 20px;
 }
 
 
-/* =========================================
-   CARDS
-========================================= */
+/* =========================
+   CARD
+   ========================= */
 
 .card {
+    background: #111827;
 
-    background:
-        #151c24;
+    border: 1px solid #263244;
 
-    border:
-        1px solid #27323e;
-
-    border-radius: 16px;
+    border-radius: 15px;
 
     padding: 20px;
 
-    box-shadow:
-        0 8px 25px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 
-
 .card-title {
-
     display: flex;
-
-    align-items: center;
-
     justify-content: space-between;
+    align-items: center;
 
     margin-bottom: 15px;
 }
 
-
 .card-title h2 {
-
-    margin: 0;
-
-    font-size: 20px;
+    font-size: 19px;
 }
 
 
-/* =========================================
-   BADGES
-========================================= */
+/* =========================
+   CAMERA
+   ========================= */
 
-.badge {
+.camera-container {
+    width: 100%;
+    aspect-ratio: 16 / 9;
 
-    background: #29333d;
+    background: #000;
 
-    color: #aeb9c4;
+    border-radius: 12px;
 
-    padding:
-        6px 12px;
+    overflow: hidden;
+}
+
+.camera-container iframe {
+    width: 100%;
+    height: 100%;
+
+    border: 0;
+}
+
+
+/* =========================
+   STATUS LABEL
+   ========================= */
+
+.status {
+    padding: 5px 10px;
 
     border-radius: 20px;
 
     font-size: 12px;
 
-    font-weight: bold;
+    background: #374151;
 }
 
 
-.badge.online {
-
-    background: #103c28;
-
-    color: #45e58a;
-}
-
-
-/* =========================================
-   CAMERA
-========================================= */
-
-.camera-container {
-
-    background: #080b0e;
-
-    border-radius: 12px;
-
-    overflow: hidden;
-
-    min-height: 300px;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    position: relative;
-}
-
-
-#cameraStream {
-
-    width: 100%;
-
-    max-height: 600px;
-
-    object-fit: contain;
-
-    display: none;
-}
-
-
-.camera-placeholder {
-
-    text-align: center;
-
-    padding: 50px;
-
-    color: #7f8b96;
-}
-
-
-.camera-icon {
-
-    font-size: 60px;
-
-    margin-bottom: 15px;
-}
-
-
-/* =========================================
-   STATUS CARDS
-========================================= */
-
-.status-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(6, 1fr);
-
-    gap: 15px;
-}
-
-
-.status-card {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-}
-
-
-.status-icon {
-
-    font-size: 30px;
-}
-
-
-.status-card p {
-
-    margin: 0;
-
-    color: #8996a3;
-
-    font-size: 13px;
-}
-
-
-.status-card h3 {
-
-    margin:
-        4px 0;
-
-    font-size: 22px;
-}
-
-
-.status-card small {
-
-    color: #687581;
-}
-
-
-/* =========================================
-   ROVER CONTROL
-========================================= */
-
-.control-card {
-
-    text-align: center;
-}
-
+/* =========================
+   CONTROL PAD
+   ========================= */
 
 .control-pad {
+    max-width: 400px;
+    margin: auto;
 
     display: flex;
-
     flex-direction: column;
 
     align-items: center;
 
-    gap: 8px;
+    gap: 10px;
 }
-
 
 .middle-controls {
-
     display: flex;
-
     gap: 10px;
 }
-
 
 .control-button {
-
-    width: 110px;
-
+    width: 100px;
     height: 75px;
 
-    border: none;
-
+    border: 0;
     border-radius: 14px;
 
-    background: #27323d;
-
+    background: #1f2937;
     color: white;
 
-    font-size: 30px;
-
-    font-weight: bold;
+    font-size: 24px;
 
     cursor: pointer;
 
-    transition:
-        transform 0.1s,
-        background 0.1s;
-}
+    display: flex;
+    flex-direction: column;
 
+    justify-content: center;
+    align-items: center;
+
+    transition: .15s;
+}
 
 .control-button span {
-
-    display: block;
-
-    font-size: 11px;
-
+    font-size: 10px;
     margin-top: 4px;
-
-    color: #aab4bd;
 }
-
 
 .control-button:hover {
-
-    background: #344351;
+    background: #374151;
+    transform: translateY(-2px);
 }
-
 
 .control-button:active {
-
-    transform: scale(0.94);
+    transform: scale(.94);
 }
 
-
-.control-button.stop {
-
-    background: #a51d2d;
+.stop {
+    background: #991b1b;
 }
 
-
-.control-button.stop:hover {
-
-    background: #c52638;
+.stop:hover {
+    background: #dc2626;
 }
 
-
-.forward {
-
-    background: #1b5435;
-}
-
-
+.forward,
 .backward {
-
-    background: #3e3420;
+    width: 120px;
 }
 
 
-/* =========================================
-   TWO COLUMN
-========================================= */
-
-.two-column {
-
-    display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap: 20px;
-}
-
-
-/* =========================================
+/* =========================
    CAMERA CONTROLS
-========================================= */
+   ========================= */
 
 .camera-controls {
-
-    text-align: center;
-}
-
-
-.camera-button {
-
-    width: 65px;
-
-    height: 55px;
-
-    margin: 5px;
-
-    border: none;
-
-    border-radius: 12px;
-
-    background: #27323d;
-
-    color: white;
-
-    font-size: 22px;
-
-    cursor: pointer;
-}
-
-
-.camera-button:hover {
-
-    background: #344351;
-}
-
-
-.camera-button.center {
-
-    background: #1e6840;
-}
-
-
-.hint {
-
-    color: #77838e;
-
-    font-size: 12px;
-
-    margin-top: 10px;
-}
-
-
-/* =========================================
-   SAFETY
-========================================= */
-
-.safety-row {
-
     display: flex;
-
-    justify-content: space-between;
-
-    padding:
-        13px 5px;
-
-    border-bottom:
-        1px solid #27323d;
-}
-
-
-.safety-row:last-child {
-
-    border-bottom: none;
-}
-
-
-.safety-row strong {
-
-    color: #45d483;
-}
-
-
-/* =========================================
-   GPS
-========================================= */
-
-.gps-grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 15px;
-}
-
-
-.gps-grid div {
-
-    background: #10161d;
-
-    padding: 15px;
-
-    border-radius: 10px;
-}
-
-
-.gps-grid p {
-
-    margin:
-        0 0 7px;
-
-    color: #7f8b96;
-
-    font-size: 13px;
-}
-
-
-.gps-grid strong {
-
-    font-size: 17px;
-}
-
-
-/* =========================================
-   SPEAKER
-========================================= */
-
-.speaker-controls {
-
-    display: flex;
+    flex-direction: column;
+    align-items: center;
 
     gap: 10px;
 }
 
-
-.speaker-controls input {
-
-    flex: 1;
-
-    padding: 14px;
-
-    border: 1px solid #34404c;
-
-    border-radius: 10px;
-
-    background: #0e141a;
-
-    color: white;
-
-    outline: none;
-
-    font-size: 15px;
+.camera-middle {
+    display: flex;
+    gap: 10px;
 }
 
+.camera-controls button {
+    width: 90px;
+    height: 65px;
 
-.primary-button {
+    border: 0;
+    border-radius: 12px;
 
-    border: none;
-
-    border-radius: 10px;
-
-    padding:
-        12px 18px;
-
-    background: #246bce;
+    background: #1f2937;
 
     color: white;
 
-    font-weight: bold;
+    font-size: 23px;
 
     cursor: pointer;
+
+    transition: .15s;
+}
+
+.camera-controls button:hover {
+    background: #374151;
+}
+
+.camera-controls button:active {
+    transform: scale(.93);
+}
+
+.camera-controls small {
+    display: block;
+    font-size: 9px;
 }
 
 
-.primary-button:hover {
+/* =========================
+   STATUS GRID
+   ========================= */
 
-    background: #2e7de5;
-}
-
-
-/* =========================================
-   SYSTEM
-========================================= */
-
-.system-grid {
-
+.status-grid {
     display: grid;
 
     grid-template-columns:
-        repeat(4, 1fr);
+        repeat(auto-fit, minmax(190px, 1fr));
 
     gap: 15px;
 }
 
+.status-card {
+    background: #111827;
 
-.system-grid div {
+    border: 1px solid #263244;
 
-    background: #10161d;
+    border-radius: 13px;
 
-    padding: 15px;
+    padding: 17px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+}
+
+.status-icon {
+    font-size: 27px;
+}
+
+.status-card p {
+    color: #9ca3af;
+
+    font-size: 12px;
+
+    margin-bottom: 5px;
+}
+
+.status-card h3 {
+    font-size: 18px;
+}
+
+
+/* =========================
+   CAMERA POSITION
+   ========================= */
+
+.position-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 15px;
+}
+
+.position-grid div {
+    background: #1f2937;
+
+    padding: 20px;
 
     border-radius: 10px;
-}
-
-
-.system-grid span {
-
-    display: block;
-
-    color: #7f8b96;
-
-    font-size: 12px;
-
-    margin-bottom: 6px;
-}
-
-
-.system-grid strong {
-
-    font-size: 14px;
-
-    word-break: break-word;
-}
-
-
-/* =========================================
-   FOOTER
-========================================= */
-
-footer {
 
     text-align: center;
+}
 
-    padding:
-        25px;
+.position-grid p {
+    color: #9ca3af;
+}
 
-    color: #65717c;
-
-    font-size: 12px;
-
-    border-top:
-        1px solid #1f2933;
-
-    margin-top: 30px;
+.position-grid strong {
+    font-size: 25px;
 }
 
 
-/* =========================================
-   RESPONSIVE
-========================================= */
+/* =========================
+   INFORMATION
+   ========================= */
 
-@media (max-width: 1000px) {
+.information p {
+    margin-top: 10px;
 
-    .status-grid {
-
-        grid-template-columns:
-            repeat(3, 1fr);
-    }
-
-    .system-grid {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
+    color: #cbd5e1;
 }
 
 
-@media (max-width: 700px) {
+/* =========================
+   FOOTER
+   ========================= */
+
+footer {
+    text-align: center;
+
+    color: #6b7280;
+
+    padding: 25px;
+}
+
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 600px) {
 
     .topbar {
-
         padding: 15px;
 
         flex-direction: column;
@@ -711,70 +388,25 @@ footer {
         gap: 10px;
     }
 
-
-    .dashboard {
-
-        width: 94%;
+    .topbar h1 {
+        font-size: 21px;
     }
-
-
-    .status-grid {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-
-    .two-column {
-
-        grid-template-columns:
-            1fr;
-    }
-
-
-    .gps-grid {
-
-        grid-template-columns:
-            1fr;
-    }
-
-
-    .speaker-controls {
-
-        flex-direction: column;
-    }
-
 
     .control-button {
-
-        width: 90px;
-
-        height: 70px;
-    }
-}
-
-
-@media (max-width: 450px) {
-
-    .status-grid {
-
-        grid-template-columns:
-            1fr 1fr;
+        width: 85px;
+        height: 68px;
     }
 
-
-    .control-button {
-
-        width: 80px;
-
-        height: 65px;
-
-        font-size: 24px;
+    .forward,
+    .backward {
+        width: 105px;
     }
 
+    .camera-controls button {
+        width: 75px;
+    }
 
-    .middle-controls {
-
-        gap: 3px;
+    .position-grid {
+        grid-template-columns: 1fr;
     }
 }
