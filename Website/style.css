@@ -1,412 +1,283 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
 }
 
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #0b1120;
-    color: #ffffff;
-    min-height: 100vh;
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#0b1120;
+    color:#ffffff;
+    min-height:100vh;
 }
 
-
-/* =========================
-   TOP BAR
-   ========================= */
-
-.topbar {
-    background: #111827;
-    border-bottom: 1px solid #263244;
-
-    padding: 18px 25px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    position: sticky;
-    top: 0;
-    z-index: 100;
+.topbar{
+    background:#111827;
+    border-bottom:1px solid #263244;
+    padding:18px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:100;
 }
 
-.topbar h1 {
-    font-size: 25px;
-    letter-spacing: 2px;
+.topbar h1{
+    font-size:25px;
+    letter-spacing:2px;
 }
 
-.topbar p {
-    color: #9ca3af;
-    margin-top: 4px;
+.topbar p{
+    color:#9ca3af;
+    margin-top:4px;
 }
 
-
-/* =========================
-   CONNECTION
-   ========================= */
-
-.connection {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-
-    font-size: 14px;
+.connection{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:14px;
 }
 
-.dot {
-    width: 11px;
-    height: 11px;
-
-    border-radius: 50%;
+.dot{
+    width:11px;
+    height:11px;
+    border-radius:50%;
 }
 
-.online {
-    background: #22c55e;
-    box-shadow: 0 0 10px #22c55e;
+.online{
+    background:#22c55e;
+    box-shadow:0 0 10px #22c55e;
 }
 
-.offline {
-    background: #ef4444;
+.offline{
+    background:#ef4444;
 }
 
-
-/* =========================
-   DASHBOARD
-   ========================= */
-
-.dashboard {
-    width: min(1200px, 94%);
-    margin: 25px auto;
-
-    display: grid;
-    gap: 20px;
+.dashboard{
+    width:min(1200px,94%);
+    margin:25px auto;
+    display:grid;
+    gap:20px;
 }
 
-
-/* =========================
-   CARD
-   ========================= */
-
-.card {
-    background: #111827;
-
-    border: 1px solid #263244;
-
-    border-radius: 15px;
-
-    padding: 20px;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+.card{
+    background:#111827;
+    border:1px solid #263244;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
 }
 
-.card-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    margin-bottom: 15px;
+.card-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
 }
 
-.card-title h2 {
-    font-size: 19px;
+.card-title h2{
+    font-size:19px;
 }
 
-
-/* =========================
-   CAMERA
-   ========================= */
-
-.camera-container {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-
-    background: #000;
-
-    border-radius: 12px;
-
-    overflow: hidden;
+.camera-container{
+    width:100%;
+    aspect-ratio:16/9;
+    background:#000;
+    border-radius:12px;
+    overflow:hidden;
 }
 
-.camera-container iframe {
-    width: 100%;
-    height: 100%;
-
-    border: 0;
+.camera-container img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
 }
 
-
-/* =========================
-   STATUS LABEL
-   ========================= */
-
-.status {
-    padding: 5px 10px;
-
-    border-radius: 20px;
-
-    font-size: 12px;
-
-    background: #374151;
+.status{
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+    background:#374151;
 }
 
-
-/* =========================
-   CONTROL PAD
-   ========================= */
-
-.control-pad {
-    max-width: 400px;
-    margin: auto;
-
-    display: flex;
-    flex-direction: column;
-
-    align-items: center;
-
-    gap: 10px;
+.control-pad{
+    max-width:400px;
+    margin:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
 }
 
-.middle-controls {
-    display: flex;
-    gap: 10px;
+.middle-controls{
+    display:flex;
+    gap:10px;
 }
 
-.control-button {
-    width: 100px;
-    height: 75px;
-
-    border: 0;
-    border-radius: 14px;
-
-    background: #1f2937;
-    color: white;
-
-    font-size: 24px;
-
-    cursor: pointer;
-
-    display: flex;
-    flex-direction: column;
-
-    justify-content: center;
-    align-items: center;
-
-    transition: .15s;
+.control-button{
+    width:100px;
+    height:75px;
+    border:0;
+    border-radius:14px;
+    background:#1f2937;
+    color:white;
+    font-size:24px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    transition:.15s;
 }
 
-.control-button span {
-    font-size: 10px;
-    margin-top: 4px;
+.control-button span{
+    font-size:10px;
+    margin-top:4px;
 }
 
-.control-button:hover {
-    background: #374151;
-    transform: translateY(-2px);
+.control-button:hover{
+    background:#374151;
+    transform:translateY(-2px);
 }
 
-.control-button:active {
-    transform: scale(.94);
+.control-button:active{
+    transform:scale(.94);
 }
 
-.stop {
-    background: #991b1b;
+.stop{
+    background:#991b1b;
 }
 
-.stop:hover {
-    background: #dc2626;
+.stop:hover{
+    background:#dc2626;
 }
 
-.forward,
-.backward {
-    width: 120px;
+.camera-controls{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
 }
 
-
-/* =========================
-   CAMERA CONTROLS
-   ========================= */
-
-.camera-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    gap: 10px;
+.camera-middle{
+    display:flex;
+    gap:10px;
 }
 
-.camera-middle {
-    display: flex;
-    gap: 10px;
+.camera-controls button{
+    width:90px;
+    height:65px;
+    border:0;
+    border-radius:12px;
+    background:#1f2937;
+    color:white;
+    font-size:23px;
+    cursor:pointer;
+    transition:.15s;
 }
 
-.camera-controls button {
-    width: 90px;
-    height: 65px;
-
-    border: 0;
-    border-radius: 12px;
-
-    background: #1f2937;
-
-    color: white;
-
-    font-size: 23px;
-
-    cursor: pointer;
-
-    transition: .15s;
+.camera-controls button:hover{
+    background:#374151;
 }
 
-.camera-controls button:hover {
-    background: #374151;
+.camera-controls button:active{
+    transform:scale(.93);
 }
 
-.camera-controls button:active {
-    transform: scale(.93);
+.camera-controls small{
+    display:block;
+    font-size:9px;
 }
 
-.camera-controls small {
-    display: block;
-    font-size: 9px;
-}
-
-
-/* =========================
-   STATUS GRID
-   ========================= */
-
-.status-grid {
-    display: grid;
-
+.status-grid{
+    display:grid;
     grid-template-columns:
-        repeat(auto-fit, minmax(190px, 1fr));
-
-    gap: 15px;
+        repeat(auto-fit,minmax(190px,1fr));
+    gap:15px;
 }
 
-.status-card {
-    background: #111827;
-
-    border: 1px solid #263244;
-
-    border-radius: 13px;
-
-    padding: 17px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 14px;
+.status-card{
+    background:#111827;
+    border:1px solid #263244;
+    border-radius:13px;
+    padding:17px;
+    display:flex;
+    align-items:center;
+    gap:14px;
 }
 
-.status-icon {
-    font-size: 27px;
+.status-icon{
+    font-size:27px;
 }
 
-.status-card p {
-    color: #9ca3af;
-
-    font-size: 12px;
-
-    margin-bottom: 5px;
+.status-card p{
+    color:#9ca3af;
+    font-size:12px;
+    margin-bottom:5px;
 }
 
-.status-card h3 {
-    font-size: 18px;
+.status-card h3{
+    font-size:18px;
 }
 
-
-/* =========================
-   CAMERA POSITION
-   ========================= */
-
-.position-grid {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 15px;
+.position-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
 }
 
-.position-grid div {
-    background: #1f2937;
-
-    padding: 20px;
-
-    border-radius: 10px;
-
-    text-align: center;
+.position-grid div{
+    background:#1f2937;
+    padding:20px;
+    border-radius:10px;
+    text-align:center;
 }
 
-.position-grid p {
-    color: #9ca3af;
+.position-grid p{
+    color:#9ca3af;
 }
 
-.position-grid strong {
-    font-size: 25px;
+.position-grid strong{
+    font-size:25px;
 }
 
-
-/* =========================
-   INFORMATION
-   ========================= */
-
-.information p {
-    margin-top: 10px;
-
-    color: #cbd5e1;
+.information p{
+    margin-top:10px;
+    color:#cbd5e1;
 }
 
-
-/* =========================
-   FOOTER
-   ========================= */
-
-footer {
-    text-align: center;
-
-    color: #6b7280;
-
-    padding: 25px;
+footer{
+    text-align:center;
+    color:#6b7280;
+    padding:25px;
 }
 
+@media(max-width:600px){
 
-/* =========================
-   MOBILE
-   ========================= */
-
-@media (max-width: 600px) {
-
-    .topbar {
-        padding: 15px;
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 10px;
+    .topbar{
+        padding:15px;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
     }
 
-    .topbar h1 {
-        font-size: 21px;
+    .topbar h1{
+        font-size:21px;
     }
 
-    .control-button {
-        width: 85px;
-        height: 68px;
+    .control-button{
+        width:85px;
+        height:68px;
     }
 
-    .forward,
-    .backward {
-        width: 105px;
+    .camera-controls button{
+        width:75px;
     }
 
-    .camera-controls button {
-        width: 75px;
-    }
-
-    .position-grid {
-        grid-template-columns: 1fr;
+    .position-grid{
+        grid-template-columns:1fr;
     }
 }
