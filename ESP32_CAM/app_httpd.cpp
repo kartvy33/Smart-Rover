@@ -40,15 +40,14 @@ static const char* STREAM_PART =
 
 static esp_err_t index_handler(httpd_req_t *req)
 {
-    httpd_resp_set_type(req, "text/html");
+      httpd_resp_set_type(req, "text/html");
+    httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
 
-    httpd_resp_send(
+    return httpd_resp_send(
         req,
         (const char *)index_ov2640_html_gz,
         index_ov2640_html_gz_len
     );
-
-    return ESP_OK;
 }
 
 
