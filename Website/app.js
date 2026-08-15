@@ -5,37 +5,15 @@
 =========================================================
 */
 
+const ROVER_IP = "192.168.4.1";
 
-/* =====================================================
-   NETWORK CONFIGURATION
-   ===================================================== */
-
-// The website is served by the ESP32-WROOM.
-//
-// Therefore we use the same IP that the browser used
-// to open the website.
-//
-// Example:
-// http://192.168.4.1
-//
-const ROVER_IP = window.location.hostname;
-
-
-// Your ESP32-CAM IP
 const CAMERA_IP = "192.168.4.2";
 
+const ROVER =
+    "http://" + ROVER_IP;
 
-/* =====================================================
-   URL HELPERS
-   ===================================================== */
-
-function roverURL(path) {
-    return "http://" + ROVER_IP + path;
-}
-
-function cameraURL(path) {
-    return "http://" + CAMERA_IP + path;
-}
+const CAMERA =
+    "http://" + CAMERA_IP;
 
 
 /* =====================================================
@@ -43,38 +21,49 @@ function cameraURL(path) {
    ===================================================== */
 
 const connectionDot =
-    document.getElementById("connectionDot");
+    document.getElementById(
+        "connectionDot"
+    );
 
 const connectionText =
-    document.getElementById("connectionText");
+    document.getElementById(
+        "connectionText"
+    );
 
 const cameraStatus =
-    document.getElementById("cameraStatus");
-
-const roverIP =
-    document.getElementById("roverIP");
+    document.getElementById(
+        "cameraStatus"
+    );
 
 
 /* =====================================================
-   CONNECTION STATUS
+   CONNECTION
    ===================================================== */
 
-function setOnline() {
+function setOnline()
+{
+    connectionDot.classList.remove(
+        "offline"
+    );
 
-    connectionDot.classList.remove("offline");
-
-    connectionDot.classList.add("online");
+    connectionDot.classList.add(
+        "online"
+    );
 
     connectionText.textContent =
         "Rover Connected";
 }
 
 
-function setOffline() {
+function setOffline()
+{
+    connectionDot.classList.remove(
+        "online"
+    );
 
-    connectionDot.classList.remove("online");
-
-    connectionDot.classList.add("offline");
+    connectionDot.classList.add(
+        "offline"
+    );
 
     connectionText.textContent =
         "Rover Offline";
@@ -82,53 +71,37 @@ function setOffline() {
 
 
 /* =====================================================
-   CAMERA
-   ===================================================== */
-
-function checkCamera() {
-
-    const frame =
-        document.getElementById("cameraFrame");
-
-    frame.src =
-        cameraURL("/");
-
-    cameraStatus.textContent =
-        "192.168.4.2";
-}
-
-
-/* =====================================================
    ROVER COMMAND
    ===================================================== */
 
-async function sendCommand(command) {
-
-    try {
-
+async function sendCommand(command)
+{
+    try
+    {
         const response =
             await fetch(
-                roverURL("/" + command),
+                ROVER +
+                "/" +
+                command,
                 {
-                    method: "GET",
-                    cache: "no-store"
+                    method:"GET",
+                    cache:"no-store"
                 }
             );
 
-        if (response.ok) {
-
+        if(response.ok)
+        {
             setOnline();
-
-        } else {
-
-            setOffline();
-
         }
-
-    } catch (error) {
-
+        else
+        {
+            setOffline();
+        }
+    }
+    catch(error)
+    {
         console.log(
-            "Command error:",
+            "Rover command error:",
             error
         );
 
@@ -138,162 +111,82 @@ async function sendCommand(command) {
 
 
 /* =====================================================
-   ROVER MOVEMENT
-   ===================================================== */
-
-function forward() {
-    sendCommand("forward");
-}
-
-function backward() {
-    sendCommand("backward");
-}
-
-function left() {
-    sendCommand("left");
-}
-
-function right() {
-    sendCommand("right");
-}
-
-function stop() {
-    sendCommand("stop");
-}
-
-
-/* =====================================================
-   BUTTONS
+   ROVER BUTTONS
    ===================================================== */
 
 document
     .getElementById("forwardBtn")
-    .addEventListener("click", forward);
+    .addEventListener(
+        "click",
+        () => sendCommand("forward")
+    );
+
 
 document
     .getElementById("backwardBtn")
-    .addEventListener("click", backward);
+    .addEventListener(
+        "click",
+        () => sendCommand("backward")
+    );
+
 
 document
     .getElementById("leftBtn")
-    .addEventListener("click", left);
+    .addEventListener(
+        "click",
+        () => sendCommand("left")
+    );
+
 
 document
     .getElementById("rightBtn")
-    .addEventListener("click", right);
+    .addEventListener(
+        "click",
+        () => sendCommand("right")
+    );
+
 
 document
     .getElementById("stopBtn")
-    .addEventListener("click", stop);
+    .addEventListener(
+        "click",
+        () => sendCommand("stop")
+    );
 
 
 /* =====================================================
-   KEYBOARD CONTROL
+   CAMERA COMMAND
    ===================================================== */
 
-document.addEventListener(
-    "keydown",
-    function(event) {
+async function cameraCommand(command)
+{
+    try
+    {
+        const response =
+            await fetch(
+                CAMERA +
+                "/api/camera/" +
+                command,
+                {
+                    method:"POST",
+                    cache:"no-store"
+                }
+            );
 
-        if (event.repeat) return;
-
-        switch (event.key) {
-
-            case "ArrowUp":
-            case "w":
-            case "W":
-                forward();
-                break;
-
-            case "ArrowDown":
-            case "s":
-            case "S":
-                backward();
-                break;
-
-            case "ArrowLeft":
-            case "a":
-            case "A":
-                left();
-                break;
-
-            case "ArrowRight":
-            case "d":
-            case "D":
-                right();
-                break;
-
-            case " ":
-                stop();
-                break;
+        if(!response.ok)
+        {
+            console.log(
+                "Camera command failed"
+            );
         }
     }
-);
-
-
-document.addEventListener(
-    "keyup",
-    function(event) {
-
-        if (
-            event.key === "ArrowUp" ||
-            event.key === "ArrowDown" ||
-            event.key === "ArrowLeft" ||
-            event.key === "ArrowRight" ||
-            event.key.toLowerCase() === "w" ||
-            event.key.toLowerCase() === "a" ||
-            event.key.toLowerCase() === "s" ||
-            event.key.toLowerCase() === "d"
-        ) {
-
-            stop();
-
-        }
+    catch(error)
+    {
+        console.log(
+            "Camera command error:",
+            error
+        );
     }
-);
-
-
-/* =====================================================
-   CAMERA PAN / TILT
-   ===================================================== */
-
-function cameraUp() {
-
-    fetch(
-        cameraURL("/camera/up")
-    ).catch(console.log);
-}
-
-
-function cameraDown() {
-
-    fetch(
-        cameraURL("/camera/down")
-    ).catch(console.log);
-}
-
-
-function cameraLeft() {
-
-    fetch(
-        cameraURL("/camera/left")
-    ).catch(console.log);
-}
-
-
-function cameraRight() {
-
-    fetch(
-        cameraURL("/camera/right")
-    ).catch(console.log);
-}
-
-
-function cameraCenter() {
-
-    fetch(
-        cameraURL("/camera/center")
-    ).catch(console.log);
 }
 
 
@@ -305,35 +198,39 @@ document
     .getElementById("cameraUp")
     .addEventListener(
         "click",
-        cameraUp
+        () => cameraCommand("up")
     );
+
 
 document
     .getElementById("cameraDown")
     .addEventListener(
         "click",
-        cameraDown
+        () => cameraCommand("down")
     );
+
 
 document
     .getElementById("cameraLeft")
     .addEventListener(
         "click",
-        cameraLeft
+        () => cameraCommand("left")
     );
+
 
 document
     .getElementById("cameraRight")
     .addEventListener(
         "click",
-        cameraRight
+        () => cameraCommand("right")
     );
+
 
 document
     .getElementById("cameraCenter")
     .addEventListener(
         "click",
-        cameraCenter
+        () => cameraCommand("center")
     );
 
 
@@ -341,23 +238,22 @@ document
    ROVER STATUS
    ===================================================== */
 
-async function updateStatus() {
-
-    try {
-
+async function updateRoverStatus()
+{
+    try
+    {
         const response =
             await fetch(
-                roverURL("/status"),
+                ROVER +
+                "/status",
                 {
-                    method: "GET",
-                    cache: "no-store"
+                    cache:"no-store"
                 }
             );
 
-        if (!response.ok) {
-
+        if(!response.ok)
+        {
             setOffline();
-
             return;
         }
 
@@ -366,12 +262,61 @@ async function updateStatus() {
 
         setOnline();
 
-        updateStatusDisplay(data);
+        if(data.battery !== undefined)
+        {
+            document.getElementById(
+                "battery"
+            ).textContent =
+                data.battery;
+        }
 
-    } catch (error) {
+        if(data.voltage !== undefined)
+        {
+            document.getElementById(
+                "voltage"
+            ).textContent =
+                data.voltage;
+        }
 
+        if(data.satellites !== undefined)
+        {
+            document.getElementById(
+                "satellites"
+            ).textContent =
+                data.satellites;
+        }
+
+        if(data.radio !== undefined)
+        {
+            document.getElementById(
+                "radio"
+            ).textContent =
+                data.radio
+                ? "Connected"
+                : "Disconnected";
+        }
+
+        if(data.distance !== undefined)
+        {
+            document.getElementById(
+                "distance"
+            ).textContent =
+                data.distance;
+        }
+
+        if(data.ip !== undefined)
+        {
+            document.getElementById(
+                "roverIP"
+            ).textContent =
+                data.ip;
+        }
+
+    }
+    catch(error)
+    {
         console.log(
-            "Status error:",
+            "Rover status error:",
             error
         );
 
@@ -381,115 +326,188 @@ async function updateStatus() {
 
 
 /* =====================================================
-   STATUS DISPLAY
+   CAMERA STATUS
    ===================================================== */
 
-function updateStatusDisplay(data) {
+async function updateCameraStatus()
+{
+    try
+    {
+        const response =
+            await fetch(
+                CAMERA +
+                "/api/status",
+                {
+                    cache:"no-store"
+                }
+            );
 
-    if (data.battery !== undefined) {
+        if(!response.ok)
+            throw new Error(
+                "Camera status failed"
+            );
+
+        const data =
+            await response.json();
 
         document.getElementById(
-            "battery"
+            "cameraConnection"
         ).textContent =
-            data.battery;
+            "Connected";
+
+        cameraStatus.textContent =
+            "Connected";
+
+        if(data.pan !== undefined)
+        {
+            document.getElementById(
+                "pan"
+            ).textContent =
+                data.pan;
+        }
+
+        if(data.tilt !== undefined)
+        {
+            document.getElementById(
+                "tilt"
+            ).textContent =
+                data.tilt;
+        }
+
+        if(data.temperature !== undefined)
+        {
+            document.getElementById(
+                "temperature"
+            ).textContent =
+                data.temperature;
+        }
+
+        if(data.humidity !== undefined)
+        {
+            document.getElementById(
+                "humidity"
+            ).textContent =
+                data.humidity;
+        }
+
+        if(data.rain !== undefined)
+        {
+            document.getElementById(
+                "rain"
+            ).textContent =
+                data.rain
+                ? "Detected"
+                : "No Rain";
+        }
+
     }
-
-
-    if (data.satellites !== undefined) {
-
-        document.getElementById(
-            "satellites"
-        ).textContent =
-            data.satellites;
-    }
-
-
-    if (data.radio !== undefined) {
+    catch(error)
+    {
+        console.log(
+            "Camera status error:",
+            error
+        );
 
         document.getElementById(
-            "radio"
+            "cameraConnection"
         ).textContent =
-            data.radio ?
-            "Connected" :
+            "Disconnected";
+
+        cameraStatus.textContent =
             "Disconnected";
     }
-
-
-    if (data.distance !== undefined) {
-
-        document.getElementById(
-            "distance"
-        ).textContent =
-            data.distance;
-    }
-
-
-    if (data.temperature !== undefined) {
-
-        document.getElementById(
-            "temperature"
-        ).textContent =
-            data.temperature;
-    }
-
-
-    if (data.humidity !== undefined) {
-
-        document.getElementById(
-            "humidity"
-        ).textContent =
-            data.humidity;
-    }
-
-
-    if (data.rain !== undefined) {
-
-        document.getElementById(
-            "rain"
-        ).textContent =
-            data.rain ?
-            "Detected" :
-            "No Rain";
-    }
-
-
-    if (data.pan !== undefined) {
-
-        document.getElementById(
-            "pan"
-        ).textContent =
-            data.pan;
-    }
-
-
-    if (data.tilt !== undefined) {
-
-        document.getElementById(
-            "tilt"
-        ).textContent =
-            data.tilt;
-    }
 }
+
+
+/* =====================================================
+   KEYBOARD CONTROL
+   ===================================================== */
+
+document.addEventListener(
+    "keydown",
+    function(event)
+    {
+        if(event.repeat)
+            return;
+
+        switch(event.key)
+        {
+            case "ArrowUp":
+            case "w":
+            case "W":
+                sendCommand("forward");
+                break;
+
+            case "ArrowDown":
+            case "s":
+            case "S":
+                sendCommand("backward");
+                break;
+
+            case "ArrowLeft":
+            case "a":
+            case "A":
+                sendCommand("left");
+                break;
+
+            case "ArrowRight":
+            case "d":
+            case "D":
+                sendCommand("right");
+                break;
+
+            case " ":
+                sendCommand("stop");
+                break;
+        }
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    function(event)
+    {
+        if(
+            event.key === "ArrowUp" ||
+            event.key === "ArrowDown" ||
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowRight" ||
+            ["w","a","s","d"].includes(
+                event.key.toLowerCase()
+            )
+        )
+        {
+            sendCommand("stop");
+        }
+    }
+);
 
 
 /* =====================================================
    INITIALIZATION
    ===================================================== */
 
-function initialize() {
-
-    roverIP.textContent =
+function initialize()
+{
+    document.getElementById(
+        "roverIP"
+    ).textContent =
         ROVER_IP;
 
-    checkCamera();
+    updateRoverStatus();
 
-    updateStatus();
+    updateCameraStatus();
 
     setInterval(
-        updateStatus,
+        updateRoverStatus,
+        1000
+    );
+
+    setInterval(
+        updateCameraStatus,
         1000
     );
 }
-
 
 initialize();
