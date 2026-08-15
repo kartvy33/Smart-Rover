@@ -17,8 +17,6 @@
 #include "speaker.h"
 #include "system.h"
 
-#define DEADZONE 100
-
 unsigned long batteryTimer = 0;
 unsigned long lcdTimer = 0;
 
@@ -33,8 +31,10 @@ void setup()
     Serial.println(" SMART ROVER STARTING...");
     Serial.println("================================");
 
-    // Start Rover Wi-Fi FIRST
-    wifiBegin()
+    /*
+       Start Wi-Fi FIRST
+    */
+    wifiBegin();
 
     motorsBegin();
 
@@ -61,19 +61,33 @@ void setup()
 
 void loop()
 {
-    // Keep GPS data updated
+    /*
+       Keep Web Server alive
+    */
+    wifiUpdate();
+
+    /*
+       Keep GPS updated
+    */
     gpsUpdate();
 
-    // Handle all safety systems
+    /*
+       Safety systems
+    */
     systemUpdate();
 
-    // Stop processing if the system is in emergency mode
+    /*
+       Emergency stop
+    */
     if (emergencyStop())
     {
+        roverStop();
         return;
     }
 
-    // Receive remote control packet
+    /*
+       Receive NRF24 remote control
+    */
     if (receivePacket())
     {
         int x = packet.joyX;
@@ -81,51 +95,78 @@ void loop()
 
         Serial.print("Joystick X: ");
         Serial.print(x);
+
         Serial.print("  Y: ");
         Serial.println(y);
 
-        // Stop
-        if (abs(x) < DEADZONE && abs(y) < DEADZONE)
+        /*
+           STOP
+        */
+        if (abs(x) < DEADZONE &&
+            abs(y) < DEADZONE)
         {
             roverStop();
         }
 
-        // Forward
+        /*
+           FORWARD
+        */
         else if (y > DEADZONE)
         {
             if (x > DEADZONE)
+            {
                 roverForwardRight(MAX_SPEED);
+            }
             else if (x < -DEADZONE)
+            {
                 roverForwardLeft(MAX_SPEED);
+            }
             else
+            {
                 roverForward(MAX_SPEED);
+            }
         }
 
-        // Reverse
+        /*
+           REVERSE
+        */
         else if (y < -DEADZONE)
         {
             if (x > DEADZONE)
+            {
                 roverReverseRight(MAX_SPEED);
+            }
             else if (x < -DEADZONE)
+            {
                 roverReverseLeft(MAX_SPEED);
+            }
             else
+            {
                 roverReverse(MAX_SPEED);
+            }
         }
 
-        // Rotate Right
+        /*
+           RIGHT
+        */
         else if (x > DEADZONE)
         {
             roverRight(MAX_SPEED);
         }
 
-        // Rotate Left
+        /*
+           LEFT
+        */
         else if (x < -DEADZONE)
         {
             roverLeft(MAX_SPEED);
         }
     }
 
-    // Update LCD every 500 ms
+    /*
+       LCD update
+       Every 500 ms
+    */
     if (millis() - lcdTimer >= 500)
     {
         lcdTimer = millis();
@@ -139,16 +180,27 @@ void loop()
         );
     }
 
-    // Print battery status every second
+    /*
+       Battery update
+       Every 1 second
+    */
     if (millis() - batteryTimer >= 1000)
     {
         batteryTimer = millis();
 
         Serial.print("Battery: ");
-        Serial.print(batteryVoltage(), 2);
+
+        Serial.print(
+            batteryVoltage(),
+            2
+        );
+
         Serial.print(" V   ");
 
-        Serial.print(batteryPercentage());
+        Serial.print(
+            batteryPercentage()
+        );
+
         Serial.println("%");
     }
 }
