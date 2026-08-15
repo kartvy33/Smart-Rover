@@ -1,7 +1,7 @@
 /*
 =========================================================
  SMART ROVER
- Main Program
+ ESP32-WROOM MAIN PROGRAM
 =========================================================
 */
 
@@ -31,9 +31,6 @@ void setup()
     Serial.println(" SMART ROVER STARTING...");
     Serial.println("================================");
 
-    /*
-       Start Wi-Fi FIRST
-    */
     wifiBegin();
 
     motorsBegin();
@@ -56,118 +53,124 @@ void setup()
 
     delay(2000);
 
-    Serial.println("Initialization Complete.");
+    Serial.println(
+        "Initialization Complete."
+    );
+
+    Serial.println(
+        "Rover IP: 192.168.4.1"
+    );
 }
 
 void loop()
 {
-    /*
-       Keep Web Server alive
-    */
+    /* =========================
+       WEB SERVER
+       ========================= */
+
     wifiUpdate();
 
-    /*
-       Keep GPS updated
-    */
+    /* =========================
+       GPS
+       ========================= */
+
     gpsUpdate();
 
-    /*
-       Safety systems
-    */
+    /* =========================
+       SAFETY
+       ========================= */
+
     systemUpdate();
 
-    /*
-       Emergency stop
-    */
-    if (emergencyStop())
+    if(emergencyStop())
     {
         roverStop();
         return;
     }
 
-    /*
-       Receive NRF24 remote control
-    */
-    if (receivePacket())
+    /* =========================
+       NRF24 REMOTE
+       ========================= */
+
+    if(receivePacket())
     {
         int x = packet.joyX;
         int y = packet.joyY;
 
-        Serial.print("Joystick X: ");
-        Serial.print(x);
-
-        Serial.print("  Y: ");
-        Serial.println(y);
-
-        /*
-           STOP
-        */
-        if (abs(x) < DEADZONE &&
-            abs(y) < DEADZONE)
+        if(
+            abs(x) < DEADZONE &&
+            abs(y) < DEADZONE
+        )
         {
             roverStop();
         }
 
-        /*
-           FORWARD
-        */
-        else if (y > DEADZONE)
+        else if(y > DEADZONE)
         {
-            if (x > DEADZONE)
+            if(x > DEADZONE)
             {
-                roverForwardRight(MAX_SPEED);
+                roverForwardRight(
+                    MAX_SPEED
+                );
             }
-            else if (x < -DEADZONE)
+            else if(x < -DEADZONE)
             {
-                roverForwardLeft(MAX_SPEED);
+                roverForwardLeft(
+                    MAX_SPEED
+                );
             }
             else
             {
-                roverForward(MAX_SPEED);
+                roverForward(
+                    MAX_SPEED
+                );
             }
         }
 
-        /*
-           REVERSE
-        */
-        else if (y < -DEADZONE)
+        else if(y < -DEADZONE)
         {
-            if (x > DEADZONE)
+            if(x > DEADZONE)
             {
-                roverReverseRight(MAX_SPEED);
+                roverReverseRight(
+                    MAX_SPEED
+                );
             }
-            else if (x < -DEADZONE)
+            else if(x < -DEADZONE)
             {
-                roverReverseLeft(MAX_SPEED);
+                roverReverseLeft(
+                    MAX_SPEED
+                );
             }
             else
             {
-                roverReverse(MAX_SPEED);
+                roverReverse(
+                    MAX_SPEED
+                );
             }
         }
 
-        /*
-           RIGHT
-        */
-        else if (x > DEADZONE)
+        else if(x > DEADZONE)
         {
-            roverRight(MAX_SPEED);
+            roverRight(
+                MAX_SPEED
+            );
         }
 
-        /*
-           LEFT
-        */
-        else if (x < -DEADZONE)
+        else if(x < -DEADZONE)
         {
-            roverLeft(MAX_SPEED);
+            roverLeft(
+                MAX_SPEED
+            );
         }
     }
 
-    /*
-       LCD update
-       Every 500 ms
-    */
-    if (millis() - lcdTimer >= 500)
+    /* =========================
+       LCD
+       ========================= */
+
+    if(
+        millis() - lcdTimer >= 500
+    )
     {
         lcdTimer = millis();
 
@@ -180,11 +183,13 @@ void loop()
         );
     }
 
-    /*
-       Battery update
-       Every 1 second
-    */
-    if (millis() - batteryTimer >= 1000)
+    /* =========================
+       BATTERY
+       ========================= */
+
+    if(
+        millis() - batteryTimer >= 1000
+    )
     {
         batteryTimer = millis();
 
