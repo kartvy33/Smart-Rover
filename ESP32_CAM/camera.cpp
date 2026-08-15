@@ -40,14 +40,14 @@ bool cameraBegin()
 
     if(psramFound())
     {
-        config.frame_size = FRAMESIZE_VGA;
-        config.jpeg_quality = 10;
-        config.fb_count = 2;
+        config.frame_size = FRAMESIZE_QVGA;
+        config.jpeg_quality = 12;
+        config.fb_count = 1;
     }
     else
     {
-        config.frame_size = FRAMESIZE_QVGA;
-        config.jpeg_quality = 12;
+        config.frame_size = FRAMESIZE_QQVGA;
+        config.jpeg_quality = 15;
         config.fb_count = 1;
     }
 
