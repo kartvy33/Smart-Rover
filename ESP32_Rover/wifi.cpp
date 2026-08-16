@@ -80,15 +80,77 @@ String getStateName()
    MOVEMENT
    ========================================================= */
 
+/* =========================================================
+   MOVEMENT
+   ========================================================= */
+
 void handleForward()
 {
-    if (!emergencyStop())
-    {
-        roverForward(MAX_SPEED);
-    }
+    roverForward(MAX_SPEED);
 
     addCORS();
-    server.send(200, "text/plain", "FORWARD");
+
+    server.send(
+        200,
+        "text/plain",
+        "FORWARD"
+    );
+}
+
+
+void handleBackward()
+{
+    roverReverse(MAX_SPEED);
+
+    addCORS();
+
+    server.send(
+        200,
+        "text/plain",
+        "BACKWARD"
+    );
+}
+
+
+void handleLeft()
+{
+    roverLeft(MAX_SPEED);
+
+    addCORS();
+
+    server.send(
+        200,
+        "text/plain",
+        "LEFT"
+    );
+}
+
+
+void handleRight()
+{
+    roverRight(MAX_SPEED);
+
+    addCORS();
+
+    server.send(
+        200,
+        "text/plain",
+        "RIGHT"
+    );
+}
+
+
+void handleStop()
+{
+    roverStop();
+
+    addCORS();
+
+    server.send(
+        200,
+        "text/plain",
+        "STOP"
+    );
 }
 
 void handleBackward()
