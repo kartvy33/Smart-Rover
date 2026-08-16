@@ -47,7 +47,7 @@
 #define MOTOR_PWM_FREQ 1000
 #define MOTOR_PWM_RES 8
 
-#define MAX_SPEED 2500
+#define MAX_SPEED 225
 
 /* ===========================
    NRF24
