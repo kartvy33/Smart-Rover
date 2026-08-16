@@ -25,44 +25,99 @@ void systemUpdate()
 {
     speakerUpdate();
 
+    /*
+     * IMPORTANT:
+     * NRF24 is NOT required for Wi-Fi website control.
+     *
+     * If the remote is disconnected, we only report
+     * LOST RADIO. We do NOT stop the rover here.
+     *
+     * This allows:
+     *
+     * Phone/PC
+     *     ↓
+     * Wi-Fi
+     *     ↓
+     * ESP32-WROOM
+     *     ↓
+     * L298N
+     *     ↓
+     * Motors
+     */
+
     if (!radioConnected())
     {
         state = STATE_LOST_RADIO;
-        roverStop();
-        speakerLostRadio();
-        return;
     }
 
+    /*
+     * Cliff detection has highest priority.
+     */
     if (cliffDetected())
     {
         state = STATE_CLIFF;
+
         roverStop();
+
         speakerCliff();
+
         return;
     }
 
+    /*
+     * Obstacle detection.
+     */
     if (obstacleDetected())
     {
         state = STATE_OBSTACLE;
+
         roverStop();
+
         speakerObstacle();
+
         return;
     }
 
+    /*
+     * Low battery is a warning, not an immediate
+     * motor emergency stop.
+     */
     if (batteryPercentage() < LOW_BATTERY_PERCENT)
     {
         state = STATE_LOW_BATTERY;
+
         speakerLowBattery();
     }
     else
     {
-        state = STATE_DRIVING;
+        /*
+         * If NRF24 is disconnected, retain LOST RADIO
+         * as the status so the website/LCD can show it.
+         *
+         * Otherwise show normal driving state.
+         */
+        if (radioConnected())
+        {
+            state = STATE_DRIVING;
+        }
+        else
+        {
+            state = STATE_LOST_RADIO;
+        }
     }
 }
 
 bool emergencyStop()
 {
-    return (state == STATE_LOST_RADIO ||
-            state == STATE_CLIFF ||
-            state == STATE_OBSTACLE);
+    /*
+     * LOST_RADIO is intentionally NOT included.
+     *
+     * Website control must continue to work when
+     * the Arduino NRF24 remote is disconnected.
+     */
+
+    return (
+        state == STATE_CLIFF ||
+        state == STATE_OBSTACLE
+    );
 }
