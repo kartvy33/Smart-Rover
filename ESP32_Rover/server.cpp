@@ -11,7 +11,6 @@ static unsigned long lastCommandCheck = 0;
 
 #define COMMAND_CHECK_INTERVAL 150
 
-
 void serverBegin()
 {
     connected = false;
@@ -24,11 +23,9 @@ void serverBegin()
 
     Serial.print("Laptop server: ");
     Serial.print(LAPTOP_SERVER_IP);
-
     Serial.print(":");
     Serial.println(LAPTOP_SERVER_PORT);
 }
-
 
 void serverUpdate()
 {
@@ -39,10 +36,16 @@ void serverUpdate()
 
     lastCommandCheck = millis();
 
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        connected = false;
+        return;
+    }
+
     HTTPClient http;
 
     String url =
-        "http://" +
+        String("http://") +
         String(LAPTOP_SERVER_IP) +
         ":" +
         String(LAPTOP_SERVER_PORT) +
@@ -84,12 +87,10 @@ void serverUpdate()
     http.end();
 }
 
-
 bool serverConnected()
 {
     return connected;
 }
-
 
 String serverGetCommand()
 {
