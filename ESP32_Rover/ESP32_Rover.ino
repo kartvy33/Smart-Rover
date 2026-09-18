@@ -5,6 +5,7 @@
 =========================================================
 */
 
+#include "server.h"
 #include "config.h"
 #include "wifi.h"
 #include "motors.h"
@@ -32,6 +33,8 @@ void setup()
     Serial.println("================================");
 
     wifiBegin();
+
+    serverBegin();
 
     motorsBegin();
 
@@ -64,6 +67,8 @@ void setup()
 
 void loop()
 {
+    serverUpdate();
+ 
     /* =========================
        WEB SERVER
        ========================= */
