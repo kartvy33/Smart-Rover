@@ -122,6 +122,7 @@ const uint8_t RADIO_ADDRESS[6] = "ROVER";
 #define LAPTOP_SERVER_IP "192.168.4.2"
 #define LAPTOP_SERVER_PORT 5000
 
-#define ROVER_API_KEY "CHANGE_THIS_ROVER_KEY"
+#define ROVER_API_KEY 
+"Rkartvy@1754"
 
 #endif
