@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "ultrasonic.h"
 #include "config.h"
 
