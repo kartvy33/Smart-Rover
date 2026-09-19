@@ -30,10 +30,15 @@ def create_account(name, email, password, enrollment_code):
     user_id = create_user(name, email, hash_password(password), role, token)
     return {"id": user_id, "name": name, "email": email, "role": role, "token": token}, None
 
-def authenticate(email, password):
-    user = get_user_by_email((email or "").strip().lower())
+def authenticate(account_id, password):
+    try:
+        account_id = int(account_id)
+    except (TypeError, ValueError):
+        return None, "Enter a valid Account ID."
+    from database import get_user
+    user = get_user(account_id)
     if not user or not check_password_hash(user["password_hash"], password or ""):
-        return None, "Invalid email or password."
+        return None, "Invalid Account ID or password."
     if not user["email_verified"]:
         return None, "Email is not verified yet."
     return dict(user), None
