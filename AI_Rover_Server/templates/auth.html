@@ -3,12 +3,12 @@
 <body class="auth"><main class="card auth-card">
 <h1>🤖 Smart Rover</h1><p class="muted">Login or create an account.</p>
 {% if verified %}<div class="ok">Email verified. You can now log in.</div>{% endif %}
-<section><h2>Login</h2><input id="loginEmail" type="email" placeholder="Email"><input id="loginPassword" type="password" placeholder="Password"><button onclick="login()">Login</button></section>
+<section><h2>Login</h2><input id="loginId" type="number" min="1" placeholder="Account ID"><input id="loginPassword" type="password" placeholder="Password"><button onclick="login()">Login</button></section>
 <hr>
-<section><h2>Sign Up</h2><input id="signupName" placeholder="Name"><input id="signupEmail" type="email" placeholder="Email"><input id="signupPassword" type="password" placeholder="Password (8+ characters)"><input id="signupCode" placeholder="Operator enrollment code (optional)"><button onclick="signup()">Sign Up</button><p class="muted small">Operator access requires the authorized name + enrollment code and email verification.</p></section>
+<section><h2>Sign Up</h2><input id="signupName" placeholder="Name"><input id="signupEmail" type="email" placeholder="Email"><input id="signupPassword" type="password" placeholder="Password (8+ characters)"><input id="signupCode" placeholder="Operator enrollment code (optional)"><button onclick="signup()">Sign Up</button><p class="muted small">Up to 5 accounts can use the same email. Save the Account ID shown after signup. Operator access requires the authorized name + enrollment code and email verification.</p></section>
 <pre id="authMessage"></pre></main>
 <script>
 async function post(url,body){const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return await r.json();}
-async function login(){const d=await post("/api/auth/login",{email:loginEmail.value,password:loginPassword.value});authMessage.textContent=d.ok?"Login successful":"Error: "+d.error;if(d.ok)location="/";}
-async function signup(){const d=await post("/api/auth/signup",{name:signupName.value,email:signupEmail.value,password:signupPassword.value,enrollment_code:signupCode.value});authMessage.textContent=d.ok?d.message:"Error: "+d.error;}
+async function login(){const d=await post("/api/auth/login",{account_id:loginId.value,password:loginPassword.value});authMessage.textContent=d.ok?"Login successful":"Error: "+d.error;if(d.ok)location="/";}
+async function signup(){const d=await post("/api/auth/signup",{name:signupName.value,email:signupEmail.value,password:signupPassword.value,enrollment_code:signupCode.value});authMessage.textContent=d.ok?(d.message+" Save your Account ID for future login."):"Error: "+d.error;}
 </script></body></html>
