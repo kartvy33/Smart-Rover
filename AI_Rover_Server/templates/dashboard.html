@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Smart Rover Dashboard</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><header><div><h1>🤖 Smart Rover</h1><span id="userInfo"></span></div><button onclick="logout()">Logout</button></header>
+<main class="grid">
+<section class="card wide"><h2>Camera</h2><img id="stream" class="stream" src="http://192.168.4.2:81/stream" alt="ESP32-CAM stream"><div class="row"><button onclick="cam('/api/camera/left')">◀ Camera</button><button onclick="cam('/api/camera/center')">Center</button><button onclick="cam('/api/camera/right')">Camera ▶</button></div></section>
+<section class="card"><h2>Manual Drive</h2><div class="drive"><button onmousedown="cmd('FORWARD')" onmouseup="stop()">▲</button><button onmousedown="cmd('LEFT')" onmouseup="stop()">◀</button><button onclick="stop()">■</button><button onmousedown="cmd('RIGHT')" onmouseup="stop()">▶</button><button onmousedown="cmd('BACKWARD')" onmouseup="stop()">▼</button></div><p id="driveStatus">STOP</p></section>
+<section class="card"><h2>Autonomous Patrol</h2><p>Operator authorization required.</p><button id="patrolStart" onclick="patrol('/api/patrol/start')">Start Patrol</button><button onclick="patrol('/api/patrol/stop')">Stop Patrol</button><p id="patrolStatus">Stopped</p></section>
+<section class="card"><h2>AI Number Plate</h2><button id="plateBtn" onclick="plateCamera()">Capture + Recognize Plate</button><input id="plateFile" type="file" accept="image/*" onchange="plateUpload()"><pre id="plateResult">No result</pre></section>
+<section class="card wide"><h2>Rover Telemetry</h2><pre id="telemetry">Loading...</pre></section>
+</main>
+<script>
+let operator=false;
+async function api(url,opt={}){const r=await fetch(url,opt);if(r.status===401){location="/login";return null}return r.json();}
+async function me(){const d=await api("/api/auth/me");if(!d||!d.authenticated){location="/login";return}operator=d.user.role==="operator";userInfo.textContent=d.user.name+" • "+d.user.role;patrolStart.disabled=!operator;plateBtn.disabled=!operator;}
+async function cmd(c){const d=await api("/api/command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:c})});if(d)driveStatus.textContent=d.command||c;}
+async function stop(){const d=await api("/api/stop",{method:"POST"});if(d)driveStatus.textContent="STOP";}
+async function patrol(url){const d=await api(url,{method:"POST"});patrolStatus.textContent=d?.error||((d?.patrol?.running)?"Running":"Stopped");}
+async function plateCamera(){const d=await api("/api/plate/camera",{method:"POST"});plateResult.textContent=d?.result?JSON.stringify(d.result,null,2):d?.error||"No result";}
+async function plateUpload(){const f=plateFile.files[0];if(!f)return;const fd=new FormData();fd.append("image",f);const d=await api("/api/plate/upload",{method:"POST",body:fd});plateResult.textContent=d?.result?JSON.stringify(d.result,null,2):d?.error||"No result";}
+async function cam(path){await api(path,{method:"POST"});}
+async function logout(){await api("/api/auth/logout",{method:"POST"});location="/login";}
+async function refresh(){const d=await api("/api/rover/status");if(d)telemetry.textContent=JSON.stringify(d,null,2);}
+me();setInterval(refresh,1000);setInterval(()=>patrol("/api/patrol/status"),1500);
+</script></body></html>
