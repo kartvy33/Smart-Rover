@@ -7,7 +7,7 @@ from functools import wraps
 
 from flask import jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import create_user, get_user_by_email, verify_user as db_verify_user
+from database import create_user, get_user_by_email, account_count_for_email, MAX_ACCOUNTS_PER_EMAIL, verify_user as db_verify_user
 
 AUTHORIZED_NAME = os.getenv("AUTHORIZED_NAME", "Kartvy").strip().lower()
 ENROLLMENT_CODE = os.getenv("AUTHORIZED_ENROLLMENT_CODE", "ROVER-2026")
@@ -22,8 +22,8 @@ def create_account(name, email, password, enrollment_code):
         return None, "Name and valid email are required."
     if not isinstance(password, str) or len(password) < 8:
         return None, "Password must contain at least 8 characters."
-    if get_user_by_email(email):
-        return None, "An account with this email already exists."
+    if account_count_for_email(email) >= MAX_ACCOUNTS_PER_EMAIL:
+        return None, f"This email has reached the maximum of {MAX_ACCOUNTS_PER_EMAIL} accounts."
     operator = name.lower() == AUTHORIZED_NAME and hmac.compare_digest(enrollment_code or "", ENROLLMENT_CODE)
     role = "operator" if operator else "user"
     token = secrets.token_urlsafe(32)
