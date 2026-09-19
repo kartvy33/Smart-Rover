@@ -3,16 +3,7 @@
 
 #include <Arduino.h>
 
-/* ===========================
-   Firmware
-   =========================== */
-
 #define FIRMWARE_VERSION "1.0"
-
-/* ===========================
-   Debug
-   =========================== */
-
 #define DEBUG_MODE 1
 
 #if DEBUG_MODE
@@ -23,97 +14,57 @@
 #define DEBUG_PRINTLN(x)
 #endif
 
-/* ===========================
-   Motor Driver (L298N)
-   =========================== */
-
+/* Motor Driver (L298N) */
 #define MOTOR_IN1 26
 #define MOTOR_IN2 27
 #define MOTOR_IN3 14
 #define MOTOR_IN4 12
-
 #define MOTOR_ENA MOTOR_PWM_LEFT
 #define MOTOR_ENB MOTOR_PWM_RIGHT
-
 #define PWM_CH_LEFT 0
 #define PWM_CH_RIGHT 1
-
 #define PWM_FREQ MOTOR_PWM_FREQ
 #define PWM_RESOLUTION MOTOR_PWM_RES
-
 #define MOTOR_PWM_LEFT 25
 #define MOTOR_PWM_RIGHT 33
-
 #define MOTOR_PWM_FREQ 1000
 #define MOTOR_PWM_RES 8
-
 #define MAX_SPEED 225
 
-/* ===========================
-   NRF24
-   =========================== */
-
+/* NRF24 */
 #define RADIO_CE 4
 #define RADIO_CSN 5
-
 const uint8_t RADIO_ADDRESS[6] = "ROVER";
 
-/* ===========================
-   GPS
-   =========================== */
-
+/* GPS */
 #define GPS_RX 16
 #define GPS_TX 17
 
-/* ===========================
-   LCD
-   =========================== */
-
+/* LCD */
 #define LCD_SDA 21
 #define LCD_SCL 22
 
-/* ===========================
-   Battery
-   =========================== */
-
+/* Battery */
 #define BATTERY_PIN 15
-
 #define BATTERY_MAX 8.40
 #define BATTERY_MIN 6.00
-
 #define LOW_BATTERY_PERCENT 15
 
-/* ===========================
-   Ultrasonic
-   =========================== */
-
+/* Ultrasonic */
 #define TRIG_PIN 32
 #define ECHO_PIN 35
-
 #define OBSTACLE_DISTANCE_CM 20
 
-/* ===========================
-   IR Sensors
-   =========================== */
-
+/* IR */
 #define IR_LEFT 34
 #define IR_RIGHT 2
-
 #define CLIFF_DETECTED LOW
-
-/* ===========================
-   Control
-   =========================== */
 
 #define DEADZONE 100
 
-/* ===========================
-   Laptop Server
-   =========================== */
-
-#define LAPTOP_SERVER_IP "192.168.4.2"
+/* Laptop server */
+#define LAPTOP_SERVER_IP "192.168.4.3"
 #define LAPTOP_SERVER_PORT 5000
-
-#define ROVER_API_KEY "Rkartvy@1754"
+#define ROVER_API_KEY "CHANGE_THIS_ROVER_KEY"
 
 #endif
