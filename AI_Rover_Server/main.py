@@ -37,12 +37,12 @@ def signup():
     if error: return jsonify({"ok":False,"error":error}),400
     try: send_verification_email(user,user["token"])
     except Exception as exc: return jsonify({"ok":False,"error":f"Account created, but email delivery failed: {exc}"}),500
-    return jsonify({"ok":True,"message":"Account created. Verify your email before logging in.","role":user["role"]})
+    return jsonify({"ok":True,"message":f"Account created. Verify your email before logging in. Your Account ID is {user[\"id\"]}.","id":user["id"],"role":user["role"]})
 
 @app.post("/api/auth/login")
 def login():
     data=request.get_json(silent=True) or {}
-    user,error=authenticate(data.get("email"),data.get("password"))
+    user,error=authenticate(data.get("account_id"),data.get("password"))
     if error: return jsonify({"ok":False,"error":error}),401
     session.clear(); session["user_id"]=user["id"]; session["name"]=user["name"]; session["role"]=user["role"]
     return jsonify({"ok":True,"user":{"name":user["name"],"email":user["email"],"role":user["role"]}})
