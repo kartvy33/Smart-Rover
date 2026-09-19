@@ -7,7 +7,7 @@ from functools import wraps
 
 from flask import jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import create_user, get_user_by_email
+from database import create_user, get_user_by_email, verify_user as db_verify_user
 
 AUTHORIZED_NAME = os.getenv("AUTHORIZED_NAME", "Kartvy").strip().lower()
 ENROLLMENT_CODE = os.getenv("AUTHORIZED_ENROLLMENT_CODE", "ROVER-2026")
@@ -37,6 +37,11 @@ def authenticate(email, password):
     if not user["email_verified"]:
         return None, "Email is not verified yet."
     return dict(user), None
+
+def verify_user(token):
+    if not token:
+        return False
+    return db_verify_user(token)
 
 def login_required(fn):
     @wraps(fn)
