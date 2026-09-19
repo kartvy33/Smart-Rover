@@ -21,9 +21,8 @@ def _reader():
     global _reader_instance
     if _reader_instance is None:
         if easyocr is None:
-            raise RuntimeError("EasyOCR is not installed. Run pip install -r requirements.txt.")
-        gpu = os.getenv("OCR_GPU", "false").lower() == "true"
-        _reader_instance = easyocr.Reader(["en"], gpu=gpu)
+            raise RuntimeError("EasyOCR is not installed.")
+        _reader_instance = easyocr.Reader(["en"], gpu=os.getenv("OCR_GPU","false").lower()=="true")
     return _reader_instance
 
 def normalize_plate(text):
@@ -31,41 +30,34 @@ def normalize_plate(text):
 
 def _candidate_score(text, confidence):
     t = normalize_plate(text)
-    if not (4 <= len(t) <= 12):
-        return -1
-    if not any(c.isalpha() for c in t) or not any(c.isdigit() for c in t):
-        return -1
+    if not (4 <= len(t) <= 12): return -1
+    if not any(c.isalpha() for c in t) or not any(c.isdigit() for c in t): return -1
     return confidence + min(len(t), 10) * 0.01
 
 def recognize_bytes(data, source="upload"):
     arr = np.frombuffer(data, np.uint8)
     image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-    if image is None:
-        raise ValueError("Invalid image data.")
-    stamp = time.strftime("%Y%m%d_%H%M%S")
+    if image is None: raise ValueError("Invalid image data.")
+    stamp = time.strftime("%Y%m%d_%H%M%S_%f")
     original = UPLOAD_DIR / f"{stamp}.jpg"
     original.write_bytes(data)
     results = _reader().readtext(image, detail=1, paragraph=False)
-    candidates = []
-    for box, text, conf in results:
-        score = _candidate_score(text, float(conf))
-        if score >= 0:
-            candidates.append({"text": normalize_plate(text), "confidence": round(float(conf),4), "score": round(float(score),4), "box": box})
-    candidates.sort(key=lambda x: x["score"], reverse=True)
-    best = candidates[0] if candidates else None
-    if best:
-        add_plate_event(best["text"], best["confidence"], str(original), source)
-    return {"plate": best["text"] if best else None, "confidence": best["confidence"] if best else 0, "candidates": candidates[:10], "image": str(original).replace("\\","/")}
+    candidates=[]
+    for box,text,conf in results:
+        score=_candidate_score(text,float(conf))
+        if score>=0:
+            candidates.append({"text":normalize_plate(text),"confidence":round(float(conf),4),"score":round(float(score),4),"box":box})
+    candidates.sort(key=lambda x:x["score"], reverse=True)
+    best=candidates[0] if candidates else None
+    if best: add_plate_event(best["text"],best["confidence"],str(original),source)
+    return {"plate":best["text"] if best else None,"confidence":best["confidence"] if best else 0,"candidates":candidates[:10],"image":str(original).replace("\\","/")}
 
 def capture_camera():
-    for endpoint in ("/capture", "/jpg"):
-        try:
-            r = requests.get(f"{CAMERA_BASE_URL}{endpoint}", timeout=4)
-            if r.ok and r.headers.get("content-type","").startswith("image/"):
-                return r.content
-        except requests.RequestException:
-            pass
-    raise RuntimeError("Could not capture an image from ESP32-CAM.")
+    r=requests.get(f"{CAMERA_BASE_URL}/capture",timeout=4)
+    r.raise_for_status()
+    if not r.headers.get("content-type","").startswith("image/"):
+        raise RuntimeError("ESP32-CAM did not return a JPEG.")
+    return r.content
 
 def recognize_camera():
     return recognize_bytes(capture_camera(), source="esp32-cam")
