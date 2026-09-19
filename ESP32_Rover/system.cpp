@@ -4,7 +4,6 @@
 #include "battery.h"
 #include "ultrasonic.h"
 #include "ir.h"
-#include "speaker.h"
 #include "motors.h"
 #include "config.h"
 
@@ -12,7 +11,6 @@ static RoverState state = STATE_IDLE;
 
 void systemBegin()
 {
-    speakerBegin();
     state = STATE_IDLE;
 }
 
@@ -23,8 +21,6 @@ RoverState getSystemState()
 
 void systemUpdate()
 {
-    speakerUpdate();
-
     /*
      * IMPORTANT:
      * NRF24 is NOT required for Wi-Fi website control.
@@ -56,11 +52,7 @@ void systemUpdate()
     if (cliffDetected())
     {
         state = STATE_CLIFF;
-
         roverStop();
-
-        speakerCliff();
-
         return;
     }
 
@@ -70,11 +62,7 @@ void systemUpdate()
     if (obstacleDetected())
     {
         state = STATE_OBSTACLE;
-
         roverStop();
-
-        speakerObstacle();
-
         return;
     }
 
@@ -85,8 +73,6 @@ void systemUpdate()
     if (batteryPercentage() < LOW_BATTERY_PERCENT)
     {
         state = STATE_LOW_BATTERY;
-
-        speakerLowBattery();
     }
     else
     {
