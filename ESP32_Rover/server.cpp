@@ -4,12 +4,39 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
+#include "battery.h"
+#include "gps.h"
+#include "ultrasonic.h"
+#include "radio.h"
+#include "system.h"
+
 static bool connected = false;
 static String currentCommand = "STOP";
-
 static unsigned long lastCommandCheck = 0;
+static unsigned long lastTelemetryPost = 0;
 
 #define COMMAND_CHECK_INTERVAL 150
+#define TELEMETRY_INTERVAL 1000
+
+static String jsonCommand(const String &response)
+{
+    int key = response.indexOf("\"command\"");
+    if (key < 0) return "STOP";
+
+    int colon = response.indexOf(':', key);
+    if (colon < 0) return "STOP";
+
+    int firstQuote = response.indexOf('\"', colon + 1);
+    if (firstQuote < 0) return "STOP";
+
+    int secondQuote = response.indexOf('\"', firstQuote + 1);
+    if (secondQuote < 0) return "STOP";
+
+    String command = response.substring(firstQuote + 1, secondQuote);
+    command.trim();
+    command.toUpperCase();
+    return command;
+}
 
 void serverBegin()
 {
@@ -29,62 +56,65 @@ void serverBegin()
 
 void serverUpdate()
 {
-    if (millis() - lastCommandCheck < COMMAND_CHECK_INTERVAL)
-    {
-        return;
-    }
-
-    lastCommandCheck = millis();
-
     if (WiFi.status() != WL_CONNECTED)
     {
         connected = false;
+        currentCommand = "STOP";
         return;
     }
 
-    HTTPClient http;
-
-    String url =
-        String("http://") +
-        String(LAPTOP_SERVER_IP) +
-        ":" +
-        String(LAPTOP_SERVER_PORT) +
-        "/api/rover/next-command";
-
-    http.begin(url);
-
-    http.addHeader(
-        "X-Rover-Key",
-        ROVER_API_KEY
-    );
-
-    int httpCode = http.GET();
-
-    if (httpCode == HTTP_CODE_OK)
+    if (millis() - lastCommandCheck >= COMMAND_CHECK_INTERVAL)
     {
-        String response = http.getString();
+        lastCommandCheck = millis();
 
-        response.trim();
-        response.toUpperCase();
+        HTTPClient http;
+        String url = String("http://") + LAPTOP_SERVER_IP + ":" +
+                     String(LAPTOP_SERVER_PORT) + "/api/rover/next-command";
 
-        if (response.length() > 0)
+        http.begin(url);
+        http.addHeader("X-Rover-Key", ROVER_API_KEY);
+        http.setTimeout(250);
+
+        int httpCode = http.GET();
+
+        if (httpCode == HTTP_CODE_OK)
         {
-            currentCommand = response;
+            String response = http.getString();
+            currentCommand = jsonCommand(response);
             connected = true;
-
-            Serial.print("Server command: ");
-            Serial.println(currentCommand);
         }
+        else
+        {
+            connected = false;
+            currentCommand = "STOP";
+        }
+
+        http.end();
     }
-    else
+
+    if (millis() - lastTelemetryPost >= TELEMETRY_INTERVAL)
     {
-        connected = false;
+        lastTelemetryPost = millis();
 
-        Serial.print("Server connection failed. HTTP: ");
-        Serial.println(httpCode);
+        HTTPClient http;
+        String url = String("http://") + LAPTOP_SERVER_IP + ":" +
+                     String(LAPTOP_SERVER_PORT) + "/api/rover/status";
+
+        String json = "{";
+        json += "\"battery\":" + String(batteryPercentage());
+        json += ",\"voltage\":" + String(batteryVoltage(), 2);
+        json += ",\"radio\":" + String(radioConnected() ? "true" : "false");
+        json += ",\"satellites\":" + String(getSatellites());
+        json += ",\"distance\":" + String(readDistance(), 1);
+        json += "}";
+
+        http.begin(url);
+        http.addHeader("Content-Type", "application/json");
+        http.addHeader("X-Rover-Key", ROVER_API_KEY);
+        http.setTimeout(250);
+        http.POST(json);
+        http.end();
     }
-
-    http.end();
 }
 
 bool serverConnected()
