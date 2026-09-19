@@ -14,7 +14,6 @@ ESP32-WROOM
  ├── Ultrasonic sensor
  ├── IR cliff sensors
  ├── Battery monitoring
- ├── Speaker
  ├── Laptop Flask Server
  └── Local safety system
 
@@ -47,7 +46,6 @@ Laptop
 #include "lcd.h"
 #include "ultrasonic.h"
 #include "ir.h"
-#include "speaker.h"
 #include "system.h"
 
 
