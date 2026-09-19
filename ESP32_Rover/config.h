@@ -24,7 +24,7 @@
 #endif
 
 /* ===========================
-   Motor Driver (TB6612FNG)
+   Motor Driver (L298N)
    =========================== */
 
 #define MOTOR_IN1 26
@@ -100,14 +100,6 @@ const uint8_t RADIO_ADDRESS[6] = "ROVER";
 #define IR_RIGHT 2
 
 #define CLIFF_DETECTED LOW
-
-/* ===========================
-   Speaker
-   =========================== */
-
-#define SPEAKER_PIN 13
-#define SPEAKER_CHANNEL 7
-#define SPEAKER_RESOLUTION 8
 
 /* ===========================
    Control
