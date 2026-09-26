@@ -1,27 +1,227 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Smart Rover Dashboard</title><link rel="stylesheet" href="/static/style.css"></head>
-<body><header><div><h1>🤖 Smart Rover</h1><span id="userInfo"></span></div><button onclick="logout()">Logout</button></header>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Rover Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>🤖 Smart Rover</h1>
+    <span id="userInfo"></span>
+  </div>
+  <button onclick="logout()">Logout</button>
+</header>
+
 <main class="grid">
-<section class="card wide"><h2>Camera</h2><img id="stream" class="stream" src="http://192.168.4.2:81/stream" alt="ESP32-CAM stream"><div class="row">
-<button onclick="cam('/api/camera/left')">◀ Camera</button><button onclick="cam('/api/camera/center')">Center</button><button onclick="cam('/api/camera/right')">Camera ▶</button></div></section>
-<section class="card"><h2>Manual Drive</h2><div class="drive"><button onmousedown="cmd('FORWARD')" onmouseup="stop()" ontouchstart="cmd('FORWARD')" ontouchend="stop()">▲</button><button onmousedown="cmd('LEFT')" onmouseup="stop()" ontouchstart="cmd('LEFT')" ontouchend="stop()">◀</button><button onclick="stop()">■</button><button onmousedown="cmd('RIGHT')" onmouseup="stop()" ontouchstart="cmd('RIGHT')" ontouchend="stop()">▶</button><button onmousedown="cmd('BACKWARD')" onmouseup="stop()" ontouchstart="cmd('BACKWARD')" ontouchend="stop()">▼</button></div><p id="driveStatus">STOP</p></section>
-<section class="card"><h2>Autonomous Patrol</h2><p>Operator authorization required.</p><button id="patrolStart" onclick="patrol('/api/patrol/start')">Start Patrol</button><button onclick="patrol('/api/patrol/stop')">Stop Patrol</button><p id="patrolStatus">Stopped</p><p>Last plate: <strong id="patrolPlate">None</strong></p></section>
-<section class="card"><h2>AI Number Plate</h2><button id="plateBtn" onclick="plateCamera()">Capture + Recognize Plate</button><input id="plateFile" type="file" accept="image/*" onchange="plateUpload()"><pre id="plateResult">No result</pre></section>
-<section class="card wide"><h2>Recent Plate Events</h2><pre id="plateEvents">Operator only</pre></section>
-<section class="card wide"><h2>Rover Telemetry</h2><pre id="telemetry">Loading...</pre></section>
+<section class="card wide">
+  <h2>Camera</h2>
+  <img id="stream" class="stream" src="http://192.168.4.2:81/stream" alt="ESP32-CAM stream">
+  <div class="row">
+    <button onclick="cam('/api/camera/left')">◀ Camera</button>
+    <button onclick="cam('/api/camera/center')">Center</button>
+    <button onclick="cam('/api/camera/right')">Camera ▶</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Manual Drive</h2>
+  <div class="drive">
+    <button onmousedown="cmd('FORWARD')" onmouseup="stop()" onmouseleave="stop()" ontouchstart="cmd('FORWARD')" ontouchend="stop()">▲</button>
+    <button onmousedown="cmd('LEFT')" onmouseup="stop()" onmouseleave="stop()" ontouchstart="cmd('LEFT')" ontouchend="stop()">◀</button>
+    <button onclick="stop()">■</button>
+    <button onmousedown="cmd('RIGHT')" onmouseup="stop()" onmouseleave="stop()" ontouchstart="cmd('RIGHT')" ontouchend="stop()">▶</button>
+    <button onmousedown="cmd('BACKWARD')" onmouseup="stop()" onmouseleave="stop()" ontouchstart="cmd('BACKWARD')" ontouchend="stop()">▼</button>
+  </div>
+  <p>Command: <strong id="driveStatus">STOP</strong></p>
+</section>
+
+<section class="card">
+  <h2>Autonomous Patrol</h2>
+  <p class="muted">The rover repeats a simple patrol route, checks the ultrasonic distance sensor, stops/reverses/turns around obstacles, and scans plates at patrol stops.</p>
+  <div class="row">
+    <button id="patrolStart" onclick="patrolStart()">▶ Start Patrol</button>
+    <button onclick="patrolStop()">■ Stop Patrol</button>
+  </div>
+  <p>Status: <strong id="patrolStatus">Stopped</strong></p>
+  <p>Action: <strong id="patrolAction">STOP</strong></p>
+  <p>Obstacles avoided: <strong id="obstacleCount">0</strong></p>
+  <p>Distance: <strong id="obstacleDistance">--</strong> cm</p>
+  <p>Last plate: <strong id="patrolPlate">None</strong></p>
+</section>
+
+<section class="card">
+  <h2>AI Number Plate</h2>
+  <div class="row">
+    <button id="plateBtn" onclick="plateCamera()">📷 Capture + Recognize</button>
+    <button id="scanStart" onclick="scanStart()">▶ Start AI Scan</button>
+    <button id="scanStop" onclick="scanStop()">■ Stop AI Scan</button>
+  </div>
+  <input id="plateFile" type="file" accept="image/*" onchange="plateUpload()">
+  <p>AI scan: <strong id="scanStatus">OFF</strong></p>
+  <p>Last scan: <strong id="lastScan">Never</strong></p>
+  <pre id="plateResult">No result</pre>
+</section>
+
+<section class="card wide">
+  <h2>Recent Plate Events</h2>
+  <pre id="plateEvents">Operator only</pre>
+</section>
+
+<section class="card wide">
+  <h2>Rover Telemetry</h2>
+  <pre id="telemetry">Loading...</pre>
+</section>
 </main>
+
 <script>
-let operator=false;
-async function api(url,opt={}){const r=await fetch(url,opt);if(r.status===401){location="/login";return null}return r.json();}
-async function me(){const d=await api("/api/auth/me");if(!d||!d.authenticated){location="/login";return}operator=d.user.role==="operator";userInfo.textContent=d.user.name+" • "+d.user.role;patrolStart.disabled=!operator;plateBtn.disabled=!operator;}
-async function cmd(c){const d=await api("/api/command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:c})});if(d)driveStatus.textContent=d.command||c;}
-async function stop(){const d=await api("/api/stop",{method:"POST"});if(d)driveStatus.textContent="STOP";}
-async function patrol(url){const d=await api(url,{method:"POST"});if(d){patrolStatus.textContent=d.error||((d.patrol&&d.patrol.running)?"Running":"Stopped");}}
-async function plateCamera(){const d=await api("/api/plate/camera",{method:"POST"});plateResult.textContent=d?.result?JSON.stringify(d.result,null,2):d?.error||"No result";}
-async function plateUpload(){const f=plateFile.files[0];if(!f)return;const fd=new FormData();fd.append("image",f);const d=await api("/api/plate/upload",{method:"POST",body:fd});plateResult.textContent=d?.result?JSON.stringify(d.result,null,2):d?.error||"No result";}
-async function cam(path){const r=await fetch("http://192.168.4.2"+path,{method:"POST"});return r.ok;}
-async function logout(){await api("/api/auth/logout",{method:"POST"});location="/login";}
-async function refresh(){const d=await api("/api/rover/status");if(!d)return;telemetry.textContent=JSON.stringify(d,null,2);if(d.patrol){patrolStatus.textContent=d.patrol.running?"Running":"Stopped";patrolPlate.textContent=d.patrol.last_plate||"None";}}
-async function refreshPlates(){if(!operator)return;const d=await api("/api/plate/events");if(d&&d.events)plateEvents.textContent=JSON.stringify(d.events,null,2);}
-me();setInterval(refresh,1000);setInterval(refreshPlates,3000);
-</script></body></html>
+let operator = false;
+
+async function api(url, opt = {}) {
+  const r = await fetch(url, opt);
+  if (r.status === 401) {
+    location = "/login";
+    return null;
+  }
+  return r.json();
+}
+
+async function me() {
+  const d = await api("/api/auth/me");
+  if (!d || !d.authenticated) {
+    location = "/login";
+    return;
+  }
+
+  operator = d.user.role === "operator";
+  userInfo.textContent = d.user.name + " • " + d.user.role;
+
+  patrolStart.disabled = !operator;
+  plateBtn.disabled = !operator;
+  scanStart.disabled = !operator;
+  scanStop.disabled = !operator;
+}
+
+async function cmd(c) {
+  const d = await api("/api/command", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({command: c})
+  });
+
+  if (d) driveStatus.textContent = d.command || c;
+}
+
+async function stop() {
+  const d = await api("/api/stop", {method: "POST"});
+  if (d) driveStatus.textContent = "STOP";
+}
+
+async function patrolStart() {
+  const d = await api("/api/patrol/start", {method: "POST"});
+  if (d) updatePatrol(d.patrol);
+}
+
+async function patrolStop() {
+  const d = await api("/api/patrol/stop", {method: "POST"});
+  if (d) updatePatrol(d.patrol);
+}
+
+async function plateCamera() {
+  plateResult.textContent = "Scanning...";
+  const d = await api("/api/plate/camera", {method: "POST"});
+  plateResult.textContent = d?.result
+    ? JSON.stringify(d.result, null, 2)
+    : d?.error || "No result";
+}
+
+async function plateUpload() {
+  const f = plateFile.files[0];
+  if (!f) return;
+
+  plateResult.textContent = "Analyzing uploaded image...";
+  const fd = new FormData();
+  fd.append("image", f);
+
+  const d = await api("/api/plate/upload", {
+    method: "POST",
+    body: fd
+  });
+
+  plateResult.textContent = d?.result
+    ? JSON.stringify(d.result, null, 2)
+    : d?.error || "No result";
+}
+
+async function scanStart() {
+  const d = await api("/api/plate/scan/start?interval=3", {method: "POST"});
+  if (d) updateScan(d.scan);
+}
+
+async function scanStop() {
+  const d = await api("/api/plate/scan/stop", {method: "POST"});
+  if (d) updateScan(d.scan);
+}
+
+async function cam(path) {
+  try {
+    const r = await fetch("http://192.168.4.2" + path, {method: "POST"});
+    if (!r.ok) console.log("Camera command failed:", r.status);
+  } catch (e) {
+    console.log("Camera unavailable:", e);
+  }
+}
+
+async function logout() {
+  await api("/api/auth/logout", {method: "POST"});
+  location = "/login";
+}
+
+function updatePatrol(p) {
+  if (!p) return;
+
+  patrolStatus.textContent = p.running ? "RUNNING" : "STOPPED";
+  patrolAction.textContent = p.last_action || "STOP";
+  obstacleCount.textContent = p.obstacle_count ?? 0;
+  obstacleDistance.textContent =
+    p.last_obstacle_distance_cm == null ? "--" : Number(p.last_obstacle_distance_cm).toFixed(1);
+  patrolPlate.textContent = p.last_plate || "None";
+}
+
+function updateScan(s) {
+  if (!s) return;
+
+  scanStatus.textContent = s.running ? "● SCAN ON" : "OFF";
+  lastScan.textContent = s.last_scan
+    ? new Date(s.last_scan * 1000).toLocaleTimeString()
+    : "Never";
+}
+
+async function refresh() {
+  const d = await api("/api/rover/status");
+  if (!d) return;
+
+  telemetry.textContent = JSON.stringify(d, null, 2);
+
+  if (d.patrol) updatePatrol(d.patrol);
+  if (d.ai_scan) updateScan(d.ai_scan);
+}
+
+async function refreshPlates() {
+  if (!operator) return;
+
+  const d = await api("/api/plate/events");
+  if (d && d.events) {
+    plateEvents.textContent = JSON.stringify(d.events, null, 2);
+  }
+}
+
+me();
+refresh();
+setInterval(refresh, 1000);
+setInterval(refreshPlates, 3000);
+</script>
+</body>
+</html>
