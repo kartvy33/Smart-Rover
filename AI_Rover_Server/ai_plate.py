@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import threading
 from pathlib import Path
 import cv2
 import numpy as np
@@ -38,7 +39,7 @@ def recognize_bytes(data, source="upload"):
     arr = np.frombuffer(data, np.uint8)
     image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     if image is None: raise ValueError("Invalid image data.")
-    stamp = time.strftime("%Y%m%d_%H%M%S_%f")
+    stamp = time.strftime("%Y%m%d_%H%M%S") + f"_{int(time.time()*1000)%1000:03d}"
     original = UPLOAD_DIR / f"{stamp}.jpg"
     original.write_bytes(data)
     results = _reader().readtext(image, detail=1, paragraph=False)
@@ -64,3 +65,44 @@ def recognize_camera():
 
 def events():
     return recent_plate_events()
+
+_auto_thread = None
+_auto_stop = None
+_last_auto_plate = None
+_last_auto_time = 0.0
+
+def _auto_scan_loop(interval):
+    global _last_auto_plate, _last_auto_time
+    while _auto_stop is not None and not _auto_stop.is_set():
+        try:
+            result = recognize_camera()
+            _last_auto_time = time.time()
+            if result.get("plate"):
+                _last_auto_plate = result["plate"]
+        except Exception:
+            _last_auto_time = time.time()
+        _auto_stop.wait(interval)
+
+def start_auto_scan(interval=3.0):
+    global _auto_thread, _auto_stop
+    if _auto_thread and _auto_thread.is_alive():
+        return False
+    _auto_stop = threading.Event()
+    _auto_thread = threading.Thread(target=_auto_scan_loop, args=(max(1.5, float(interval)),), daemon=True)
+    _auto_thread.start()
+    return True
+
+def stop_auto_scan():
+    global _auto_thread, _auto_stop
+    if _auto_stop:
+        _auto_stop.set()
+    _auto_thread = None
+    _auto_stop = None
+    return True
+
+def auto_scan_state():
+    return {
+        "running": bool(_auto_thread and _auto_thread.is_alive()),
+        "last_plate": _last_auto_plate,
+        "last_scan": _last_auto_time,
+    }
