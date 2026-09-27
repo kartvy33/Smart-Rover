@@ -16,3 +16,17 @@ pre{margin:12px 0 0;padding:14px;max-height:310px;overflow:auto;white-space:pre-
 @media(max-width:850px){.topbar{height:auto;min-height:70px;padding:13px 15px;align-items:flex-start}.top-actions{flex-wrap:wrap;justify-content:flex-end}.user-chip{display:none}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.hero{align-items:flex-start;flex-direction:column}.hero-status{text-align:left}.stream{height:auto;min-height:210px}.camera-controls{flex-wrap:wrap}.control{flex:1 1 130px}}
 @media(max-width:520px){.dashboard{padding:18px 11px 35px}.card{padding:17px;border-radius:16px}.brand span{display:none}.connection{font-size:9px}.top-actions{gap:6px}.drive{grid-template-columns:repeat(3,62px)}.drive button{width:62px;height:58px}.metrics,.telemetry-grid{grid-template-columns:1fr}.actions button{flex-basis:100%}.hero h2{font-size:2rem}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+/* AI telemetry and history */
+.head-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.toggle-btn{min-height:30px;font-size:9px;letter-spacing:.06em}
+.toggle-btn.off{color:#ffb0bb;background:rgba(255,100,124,.07);border-color:rgba(255,100,124,.25)}
+.final-answer{margin-top:12px;padding:15px 16px;border:1px solid rgba(77,227,208,.16);border-radius:14px;background:linear-gradient(135deg,rgba(77,227,208,.08),rgba(255,255,255,.02))}
+.final-answer span,.final-answer time{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.final-answer strong{display:block;margin:3px 0;font-size:25px;letter-spacing:.08em}
+.telemetry-off{padding:20px;border:1px dashed rgba(148,163,184,.2);border-radius:14px;color:var(--muted);font-size:12px}
+.history-list{display:grid;gap:8px;margin-top:10px}
+.history-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}
+.history-row strong{font-size:17px;letter-spacing:.08em}
+.history-row time{color:var(--muted);font-size:11px;white-space:nowrap}
+.empty-history{padding:18px;color:var(--muted);text-align:center;border:1px dashed rgba(148,163,184,.18);border-radius:12px;font-size:12px}
+@media(max-width:520px){.head-tools{justify-content:flex-start}.history-row{align-items:flex-start;flex-direction:column;gap:3px}.history-row time{white-space:normal}}
