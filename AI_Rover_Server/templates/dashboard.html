@@ -70,8 +70,9 @@
       </div>
     </article>
 
-    <article class="card ai-card">
-      <div class="card-head"><div><span class="kicker">AI VISION</span><h3>Number plate</h3></div><span class="ai-badge">RAPIDOCR</span></div>
+    <article class="card ai-card" id="aiTelemetryCard">
+      <div class="card-head"><div><span class="kicker">AI VISION</span><h3>Number plate</h3></div><div class="head-tools"><span class="ai-badge">RAPIDOCR</span><button class="mini toggle-btn" id="aiTelemetryToggle" onclick="toggleAITelemetry()">AI TELEMETRY: ON</button></div></div>
+      <div id="aiTelemetryBody">
       <div class="ai-result" id="aiSummary"><span class="ai-icon">⌁</span><div><strong>Ready to scan</strong><small>Fast CPU OCR via RapidOCR</small></div></div>
       <div class="actions">
         <button id="plateBtn" onclick="plateCamera()">📷 Capture & recognize</button>
@@ -81,11 +82,13 @@
       <label class="upload"><span>Upload a test image</span><input id="plateFile" type="file" accept="image/*" onchange="plateUpload()"><b>Choose image</b></label>
       <pre id="plateResult">No scan result yet.</pre>
       <div class="scan-line"><span>AI scan</span><strong id="scanStatus">OFF</strong><span>Last scan</span><strong id="lastScan">Never</strong></div>
+      </div>
+      <div class="telemetry-off" id="aiTelemetryOff" hidden>AI plate telemetry is hidden for this account. Scanning controls remain available to the operator.</div>
     </article>
 
     <article class="card events-card">
       <div class="card-head"><div><span class="kicker">HISTORY</span><h3>Recent plate events</h3></div><button class="mini" onclick="refreshPlates()">↻ Refresh</button></div>
-      <pre id="plateEvents">Operator only</pre>
+      <div id="plateEvents" class="history-list"><div class="empty-history">No plate history available.</div></div>
     </article>
 
     <article class="card telemetry-card wide">
@@ -122,6 +125,7 @@ async function me() {
   operator = d.user.role === "operator";
   $("userInfo").textContent = d.user.name + " • " + d.user.role.toUpperCase();
   ["patrolStart","plateBtn","scanStart","scanStop"].forEach(id => $(id).disabled = !operator);
+  await loadAITelemetryPreference();
 }
 
 async function cmd(c) {
@@ -146,10 +150,20 @@ async function plateUpload() {
   const fd=new FormData(); fd.append("image",f);
   showPlateResult(await api("/api/plate/upload",{method:"POST",body:fd}));
 }
+function formatDateTime(value){
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
+}
 function showPlateResult(d) {
   const result=d?.result;
-  $("plateResult").textContent=result ? JSON.stringify(result,null,2) : (d?.error||"No result");
-  if(result?.plate) $("aiSummary").innerHTML='<span class="ai-icon">✓</span><div><strong>'+escapeHtml(result.plate)+'</strong><small>Plate detected • '+Math.round((result.confidence||0)*100)+'% confidence</small></div>';
+  if(result?.plate){
+    const stamp=result.created_at ? formatDateTime(result.created_at) : formatDateTime(new Date().toISOString());
+    $("plateResult").innerHTML='<span>Final result</span><strong>'+escapeHtml(result.plate)+'</strong><time>'+escapeHtml(stamp)+'</time>';
+    $("aiSummary").innerHTML='<span class="ai-icon">✓</span><div><strong>'+escapeHtml(result.plate)+'</strong><small>Plate detected</small></div>';
+  } else {
+    $("plateResult").innerHTML='<span>Final result</span><strong>'+escapeHtml(d?.error||"No plate detected")+'</strong><time>'+formatDateTime(new Date().toISOString())+'</time>';
+  }
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 
@@ -157,6 +171,22 @@ async function scanStart(){const d=await api("/api/plate/scan/start?interval=3",
 async function scanStop(){const d=await api("/api/plate/scan/stop",{method:"POST"});if(d)updateScan(d.scan);}
 async function cam(path){try{const r=await fetch("http://192.168.4.2"+path,{method:"POST"});if(!r.ok)console.log("Camera command failed:",r.status);}catch(e){console.log("Camera unavailable:",e);}}
 async function logout(){await api("/api/auth/logout",{method:"POST"});location="/login";}
+async function loadAITelemetryPreference(){
+ const d=await api("/api/preferences/ai-telemetry");
+ if(d) updateAITelemetryUI(d.enabled !== false);
+}
+function updateAITelemetryUI(enabled){
+ $("aiTelemetryBody").hidden=!enabled;
+ $("aiTelemetryOff").hidden=enabled;
+ $("aiTelemetryToggle").textContent=enabled?"AI TELEMETRY: ON":"AI TELEMETRY: OFF";
+ $("aiTelemetryToggle").classList.toggle("off",!enabled);
+ $("historyCard").classList.toggle("telemetry-hidden",!enabled);
+}
+async function toggleAITelemetry(){
+ const enabled=$("aiTelemetryToggle").textContent.includes("OFF");
+ const d=await api("/api/preferences/ai-telemetry",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({enabled})});
+ if(d) updateAITelemetryUI(d.enabled);
+}
 
 function updatePatrol(p){
  if(!p)return;
@@ -172,7 +202,7 @@ function updateScan(s){
  if(!s)return;
  $("scanStatus").textContent=s.running?"● ON":"OFF";
  $("scanStatus").classList.toggle("active",!!s.running);
- $("lastScan").textContent=s.last_scan?new Date(s.last_scan*1000).toLocaleTimeString():"Never";
+ $("lastScan").textContent=s.last_scan?formatDateTime(new Date(s.last_scan*1000).toISOString()):"Never";
 }
 function renderTelemetry(d){
  const s=d.status||d.rover?.status||{};
@@ -190,7 +220,11 @@ async function refresh(){
 async function refreshPlates(){
  if(!operator)return;
  const d=await api("/api/plate/events");
- if(d&&d.events)$("plateEvents").textContent=JSON.stringify(d.events,null,2);
+ if(d&&d.events){
+   $("plateEvents").innerHTML=d.events.length
+    ? d.events.map(e=>'<div class="history-row"><strong>'+escapeHtml(e.plate||"No plate")+'</strong><time>'+escapeHtml(formatDateTime(e.created_at))+'</time></div>').join("")
+    : '<div class="empty-history">No plate history available.</div>';
+ }
 }
 me();refresh();setInterval(refresh,1000);setInterval(refreshPlates,5000);
 </script>
