@@ -140,12 +140,34 @@ def stop_api():
 @app.get("/api/rover/status")
 @login_required
 def rover_status():
-    return jsonify({
+    ai_enabled = session.get("ai_telemetry_enabled", True)
+    payload = {
         "ok": True,
         **state(),
         "patrol": patrol.status(),
-        "ai_scan": auto_scan_state(),
+        "ai_telemetry_enabled": ai_enabled,
+    }
+    if ai_enabled:
+        payload["ai_scan"] = auto_scan_state()
+    return jsonify(payload)
+
+@app.get("/api/preferences/ai-telemetry")
+@login_required
+def get_ai_telemetry_preference():
+    return jsonify({
+        "ok": True,
+        "enabled": session.get("ai_telemetry_enabled", True),
     })
+
+@app.post("/api/preferences/ai-telemetry")
+@login_required
+def set_ai_telemetry_preference():
+    data = request.get_json(silent=True) or {}
+    enabled = data.get("enabled", True)
+    if not isinstance(enabled, bool):
+        return jsonify({"ok": False, "error": "enabled must be true or false"}), 400
+    session["ai_telemetry_enabled"] = enabled
+    return jsonify({"ok": True, "enabled": enabled})
 
 @app.post("/api/rover/status")
 def rover_status_post():
