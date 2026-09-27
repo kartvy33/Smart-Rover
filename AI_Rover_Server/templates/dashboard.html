@@ -80,7 +80,7 @@
         <button class="danger-outline" id="scanStop" onclick="scanStop()">■ Stop</button>
       </div>
       <label class="upload"><span>Upload a test image</span><input id="plateFile" type="file" accept="image/*" onchange="plateUpload()"><b>Choose image</b></label>
-      <pre id="plateResult">No scan result yet.</pre>
+      <div id="plateResult" class="final-answer"><span>Final result</span><strong>—</strong><time>—</time></div>
       <div class="scan-line"><span>AI scan</span><strong id="scanStatus">OFF</strong><span>Last scan</span><strong id="lastScan">Never</strong></div>
       </div>
       <div class="telemetry-off" id="aiTelemetryOff" hidden>AI plate telemetry is hidden for this account. Scanning controls remain available to the operator.</div>
