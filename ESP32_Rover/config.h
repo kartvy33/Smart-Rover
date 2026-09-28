@@ -63,7 +63,7 @@ const uint8_t RADIO_ADDRESS[6] = "ROVER";
 #define DEADZONE 100
 
 /* Laptop server */
-#define LAPTOP_SERVER_IP "192.168.4.3"
+#define LAPTOP_SERVER_IP "10.254.0.8"
 #define LAPTOP_SERVER_PORT 5000
 #define ROVER_API_KEY "CHANGE_THIS_ROVER_KEY"
 
