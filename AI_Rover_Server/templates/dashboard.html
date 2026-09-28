@@ -92,9 +92,35 @@
     </article>
 
     <article class="card telemetry-card wide">
-      <div class="card-head"><div><span class="kicker">SYSTEM</span><h3>Rover telemetry</h3></div><span class="small">Live • 1 sec</span></div>
+      <div class="card-head"><div><span class="kicker">SYSTEM TELEMETRY</span><h3>Rover telemetry</h3></div><span class="small">Live • 1 sec</span></div>
       <div id="telemetryGrid" class="telemetry-grid"></div>
-      <details><summary>Raw telemetry</summary><pre id="telemetry">Loading...</pre></details>
+      <details><summary>Raw rover telemetry</summary><pre id="telemetry">Loading...</pre></details>
+    </article>
+
+    <article class="card environment-card wide">
+      <div class="card-head">
+        <div><span class="kicker">ENVIRONMENT</span><h3>Temperature, humidity & rain</h3></div>
+        <span id="environmentStatus" class="status-pill">WAITING</span>
+      </div>
+      <div class="environment-grid">
+        <div class="environment-tile">
+          <span>Temperature</span>
+          <strong id="environmentTemperature">--</strong>
+          <small>°C</small>
+        </div>
+        <div class="environment-tile">
+          <span>Humidity</span>
+          <strong id="environmentHumidity">--</strong>
+          <small>%</small>
+        </div>
+        <div class="environment-tile rain-tile">
+          <span>Rain sensor</span>
+          <strong id="environmentRain">--</strong>
+          <small id="environmentRainDetail">Waiting for ESP32-CAM</small>
+        </div>
+      </div>
+      <p class="environment-note">Live values are read from the ESP32-CAM sensor status endpoint.</p>
+      <details><summary>Raw camera sensor data</summary><pre id="cameraTelemetry">Loading...</pre></details>
     </article>
   </section>
 </main>
@@ -204,9 +230,49 @@ function updateScan(s){
  $("scanStatus").classList.toggle("active",!!s.running);
  $("lastScan").textContent=s.last_scan?formatDateTime(new Date(s.last_scan*1000).toISOString()):"Never";
 }
+async function refreshEnvironment(){
+  try {
+    const r = await fetch("http://192.168.4.2/api/status", {cache:"no-store"});
+    if(!r.ok) throw new Error("Camera status HTTP " + r.status);
+    const s = await r.json();
+
+    const temperature = s.temperature ?? s.temp;
+    const humidity = s.humidity ?? s.hum;
+    const rain = s.rain;
+
+    $("environmentTemperature").textContent =
+      temperature === undefined || temperature === null ? "--" : Number(temperature).toFixed(1);
+    $("environmentHumidity").textContent =
+      humidity === undefined || humidity === null ? "--" : Number(humidity).toFixed(1);
+
+    if (rain !== undefined && rain !== null) {
+      const raining = rain === true || rain === 1 || rain === "1" ||
+                      String(rain).toLowerCase() === "true" ||
+                      String(rain).toLowerCase() === "detected";
+      $("environmentRain").textContent = raining ? "Detected" : "No Rain";
+      $("environmentRainDetail").textContent = raining ? "Rain sensor active" : "Sensor clear";
+    } else {
+      $("environmentRain").textContent = "--";
+      $("environmentRainDetail").textContent = "No rain value reported";
+    }
+
+    $("environmentStatus").textContent = "CAMERA LINK ACTIVE";
+    $("environmentStatus").classList.add("active");
+    $("cameraTelemetry").textContent = JSON.stringify(s, null, 2);
+  } catch (e) {
+    $("environmentStatus").textContent = "CAMERA LINK LOST";
+    $("environmentStatus").classList.remove("active");
+    $("environmentTemperature").textContent = "--";
+    $("environmentHumidity").textContent = "--";
+    $("environmentRain").textContent = "--";
+    $("environmentRainDetail").textContent = "ESP32-CAM unavailable";
+    $("cameraTelemetry").textContent = "Unable to read ESP32-CAM sensor status.";
+  }
+}
+
 function renderTelemetry(d){
  const s=d.status||d.rover?.status||{};
- const items=[["Battery",s.battery??"—"],["Voltage",s.voltage!=null?Number(s.voltage).toFixed(2)+" V":"—"],["Ultrasonic",s.distance!=null?s.distance+" cm":"—"],["GPS satellites",s.satellites??"—"],["Radio",s.radio??"—"],["Mode",d.patrol?.running?"AUTO":(d.mode||"MANUAL")]];
+ const items=[["Battery",s.battery??"—"],["Voltage",s.voltage!=null?Number(s.voltage).toFixed(2)+" V":"—"],["Ultrasonic",s.distance!=null?s.distance+" cm":"—"],["GPS satellites",s.satellites??"—"],["Radio",s.radio??"—"],["GPS",s.gps_valid?"VALID":"NO FIX"],["Speed",s.speed_kmph!=null?Number(s.speed_kmph).toFixed(1)+" km/h":"—"],["Mode",d.patrol?.running?"AUTO":(d.mode||"MANUAL")]];
  $("telemetryGrid").innerHTML=items.map(x=>'<div class="metric-tile"><span>'+x[0]+'</span><strong>'+escapeHtml(x[1])+'</strong></div>').join("");
 }
 async function refresh(){
@@ -226,7 +292,7 @@ async function refreshPlates(){
     : '<div class="empty-history">No plate history available.</div>';
  }
 }
-me();refresh();setInterval(refresh,1000);setInterval(refreshPlates,5000);
+me();refresh();refreshEnvironment();setInterval(refresh,1000);setInterval(refreshEnvironment,1000);setInterval(refreshPlates,5000);
 </script>
 </body>
 </html>
