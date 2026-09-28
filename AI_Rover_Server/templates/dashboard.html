@@ -180,7 +180,7 @@ function updateAITelemetryUI(enabled){
  $("aiTelemetryOff").hidden=enabled;
  $("aiTelemetryToggle").textContent=enabled?"AI TELEMETRY: ON":"AI TELEMETRY: OFF";
  $("aiTelemetryToggle").classList.toggle("off",!enabled);
- $("historyCard").classList.toggle("telemetry-hidden",!enabled);
+ 
 }
 async function toggleAITelemetry(){
  const enabled=$("aiTelemetryToggle").textContent.includes("OFF");
