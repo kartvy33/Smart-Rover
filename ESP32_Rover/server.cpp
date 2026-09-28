@@ -47,7 +47,6 @@ void serverBegin()
     Serial.println("================================");
     Serial.println(" LAPTOP SERVER CONTROL");
     Serial.println("================================");
-
     Serial.print("Laptop server: ");
     Serial.print(LAPTOP_SERVER_IP);
     Serial.print(":");
@@ -105,6 +104,10 @@ void serverUpdate()
         json += ",\"voltage\":" + String(batteryVoltage(), 2);
         json += ",\"radio\":" + String(radioConnected() ? "true" : "false");
         json += ",\"satellites\":" + String(getSatellites());
+        json += ",\"gps_valid\":" + String(gpsValid() ? "true" : "false");
+        json += ",\"latitude\":" + String(getLatitude(), 6);
+        json += ",\"longitude\":" + String(getLongitude(), 6);
+        json += ",\"speed_kmph\":" + String(getSpeed(), 2);
         json += ",\"distance\":" + String(readDistance(), 1);
         json += "}";
 
