@@ -30,3 +30,12 @@ pre{margin:12px 0 0;padding:14px;max-height:310px;overflow:auto;white-space:pre-
 .history-row time{color:var(--muted);font-size:11px;white-space:nowrap}
 .empty-history{padding:18px;color:var(--muted);text-align:center;border:1px dashed rgba(148,163,184,.18);border-radius:12px;font-size:12px}
 @media(max-width:520px){.head-tools{justify-content:flex-start}.history-row{align-items:flex-start;flex-direction:column;gap:3px}.history-row time{white-space:normal}}
+
+
+/* Live GPS map */
+.rover-map{height:460px;min-height:300px;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#07101a}
+.map-readout{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:10px}
+.map-readout span{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025);color:var(--muted);font-size:10px}
+.map-readout b{display:block;margin-top:2px;color:var(--text);font-size:12px}
+.leaflet-container{font:12px Inter,ui-sans-serif,system-ui,sans-serif}
+@media(max-width:700px){.rover-map{height:360px}.map-readout{grid-template-columns:repeat(2,minmax(0,1fr))}}
