@@ -193,6 +193,47 @@ def next_command():
         "mode": s["mode"],
     })
 
+@app.post("/api/jarvis/command")
+def jarvis_command():
+    key = request.headers.get("X-Rover-Key", "")
+    expected = os.getenv("ROVER_API_KEY", "")
+    if not expected or key != expected:
+        return jsonify({"ok": False, "error": "Invalid JARVIS rover key"}), 403
+
+    data = request.get_json(silent=True) or {}
+    command_name = str(data.get("command", "")).strip().lower()
+
+    if command_name in {"patrol start", "start patrol", "auto patrol", "patrol"}:
+        patrol.start()
+        return jsonify({"ok": True, "action": "PATROL_START", "patrol": patrol.status()})
+
+    if command_name in {"patrol stop", "stop patrol", "manual"}:
+        patrol.stop()
+        return jsonify({"ok": True, "action": "PATROL_STOP", "patrol": patrol.status()})
+
+    if command_name in {"stop", "emergency stop"}:
+        patrol.stop()
+        set_command("STOP")
+        return jsonify({"ok": True, "action": "STOP", "command": "STOP"})
+
+    commands = {
+        "forward": "FORWARD",
+        "backward": "BACKWARD",
+        "reverse": "BACKWARD",
+        "left": "LEFT",
+        "right": "RIGHT",
+    }
+    if command_name in commands:
+        if patrol.running:
+            return jsonify({"ok": False, "error": "Stop autonomous patrol before manual driving."}), 409
+        set_command(commands[command_name])
+        return jsonify({"ok": True, "action": commands[command_name], "command": get_command()})
+
+    if command_name in {"status", "gps", "location", "map"}:
+        return jsonify({"ok": True, "rover": state(), "patrol": patrol.status()})
+
+    return jsonify({"ok": False, "error": "Unknown JARVIS rover command"}), 400
+
 @app.post("/api/patrol/start")
 @operator_required
 def patrol_start():
