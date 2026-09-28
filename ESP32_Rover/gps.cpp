@@ -1,7 +1,6 @@
 #include "gps.h"
 
 TinyGPSPlus gps;
-
 HardwareSerial GPSSerial(2);
 
 void gpsBegin()
@@ -19,34 +18,22 @@ void gpsUpdate()
 
 double getLatitude()
 {
-    if (gps.location.isValid())
-        return gps.location.lat();
-
-    return 0.0;
+    return gps.location.isValid() ? gps.location.lat() : 0.0;
 }
 
 double getLongitude()
 {
-    if (gps.location.isValid())
-        return gps.location.lng();
-
-    return 0.0;
+    return gps.location.isValid() ? gps.location.lng() : 0.0;
 }
 
 double getSpeed()
 {
-    if (gps.speed.isValid())
-        return gps.speed.kmph();
-
-    return 0.0;
+    return gps.speed.isValid() ? gps.speed.kmph() : 0.0;
 }
 
 int getSatellites()
 {
-    if (gps.satellites.isValid())
-        return gps.satellites.value();
-
-    return 0;
+    return gps.satellites.isValid() ? gps.satellites.value() : 0;
 }
 
 bool gpsValid()
