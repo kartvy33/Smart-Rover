@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Smart Rover • Mission Control</title>
-<link rel="stylesheet" href="/static/style.css">\n<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header class="topbar">
@@ -89,17 +89,6 @@
     <article class="card events-card">
       <div class="card-head"><div><span class="kicker">HISTORY</span><h3>Recent plate events</h3></div><button class="mini" onclick="refreshPlates()">↻ Refresh</button></div>
       <div id="plateEvents" class="history-list"><div class="empty-history">No plate history available.</div></div>
-    </article>
-
-    <article class="card map-card wide">
-      <div class="card-head"><div><span class="kicker">GPS NAVIGATION</span><h3>Live rover map</h3></div><span id="gpsMapStatus" class="status-pill">WAITING FOR GPS</span></div>
-      <div id="roverMap" class="rover-map"></div>
-      <div class="map-readout">
-        <span>Latitude<b id="mapLat">--</b></span>
-        <span>Longitude<b id="mapLng">--</b></span>
-        <span>Speed<b id="mapSpeed">--</b></span>
-        <span>Satellites<b id="mapSatellites">--</b></span>
-      </div>
     </article>
 
     <article class="card telemetry-card wide">
@@ -290,7 +279,7 @@ async function refresh(){
  const d=await api("/api/rover/status"); if(!d)return;
  setConnection(true);
  $("telemetry").textContent=JSON.stringify(d,null,2);
- renderTelemetry(d);\n updateRoverMap(d.status || d.rover?.status || {});
+ renderTelemetry(d);
  if(d.patrol)updatePatrol(d.patrol);
  if(d.ai_scan)updateScan(d.ai_scan);
 }
@@ -303,7 +292,7 @@ async function refreshPlates(){
     : '<div class="empty-history">No plate history available.</div>';
  }
 }
-me();initRoverMap();refresh();refreshEnvironment();setInterval(refresh,1000);setInterval(refreshEnvironment,1000);setInterval(refreshPlates,5000);
+me();refresh();refreshEnvironment();setInterval(refresh,1000);setInterval(refreshEnvironment,1000);setInterval(refreshPlates,5000);
 </script>
 </body>
 </html>
