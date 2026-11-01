@@ -108,6 +108,7 @@ void serverUpdate()
         json += ",\"latitude\":" + String(getLatitude(), 6);
         json += ",\"longitude\":" + String(getLongitude(), 6);
         json += ",\"speed_kmph\":" + String(getSpeed(), 2);
+        json += ",\"course_deg\":" + String(gps.course.isValid() ? gps.course.deg() : -1.0, 1);
         json += ",\"distance\":" + String(readDistance(), 1);
         json += "}";
 
