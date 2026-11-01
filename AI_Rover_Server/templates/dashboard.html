@@ -91,6 +91,20 @@
       <div id="plateEvents" class="history-list"><div class="empty-history">No plate history available.</div></div>
     </article>
 
+    <article class="card wide vision-card">
+      <div class="card-head"><div><span class="kicker">COMPUTER VISION</span><h3>People, vehicles & animals</h3></div><span id="visionStatus" class="status-pill">OFF</span></div>
+      <p class="muted">Optional laptop-side YOLO detection from ESP32-CAM snapshots.</p>
+      <div class="actions"><button id="visionStart" onclick="visionStart()">▶ Start AI vision</button><button class="danger-outline" onclick="visionStop()">■ Stop vision</button></div>
+      <div id="visionDetections" class="history-list"><div class="empty-history">Vision is stopped.</div></div>
+      <p class="environment-note" id="visionError"></p>
+    </article>
+    <article class="card wide waypoint-card">
+      <div class="card-head"><div><span class="kicker">OUTDOOR ONLY · EXPERIMENTAL</span><h3>GPS waypoint patrol</h3></div><span id="waypointStatus" class="status-pill">STOPPED</span></div>
+      <p class="muted">Enter measured GPS coordinates as a JSON list. Course-over-ground navigation is approximate; do not use near roads, people, stairs or drop-offs.</p>
+      <textarea id="waypointInput" rows="3" placeholder='[{"latitude":22.0001,"longitude":72.0001}]'></textarea>
+      <div class="actions"><button onclick="saveWaypoints()">Save GPS route</button><button onclick="startWaypoints()">▶ Start waypoint patrol</button><button class="danger-outline" onclick="stopWaypoints()">■ Stop</button></div>
+      <pre id="waypointInfo">No route loaded.</pre>
+    </article>
     <article class="card telemetry-card wide">
       <div class="card-head"><div><span class="kicker">SYSTEM TELEMETRY</span><h3>Rover telemetry</h3></div><span class="small">Live • 1 sec</span></div>
       <div id="telemetryGrid" class="telemetry-grid"></div>
@@ -162,6 +176,13 @@ async function stop() {
   const d = await api("/api/stop", {method:"POST"});
   if (d) $("driveStatus").textContent = "STOP";
 }
+async function visionStart(){const d=await api("/api/vision/start",{method:"POST"});if(d)renderVision(d.vision);}
+async function visionStop(){const d=await api("/api/vision/stop",{method:"POST"});if(d)renderVision(d.vision);}
+function renderVision(v){if(!v)return;$("visionStatus").textContent=v.running?"RUNNING":"STOPPED";$("visionStatus").classList.toggle("active",!!v.running);$("visionError").textContent=v.error||"";$("visionDetections").innerHTML=v.detections?.length?v.detections.map(x=>'<div class="history-row"><strong>'+escapeHtml(x.label)+'</strong><time>'+Math.round(x.confidence*100)+'% · '+escapeHtml(x.category)+'</time></div>').join(""):'<div class="empty-history">No current detections.</div>';}
+async function saveWaypoints(){let points;try{points=JSON.parse($("waypointInput").value);}catch(e){$("waypointInfo").textContent="Invalid JSON route.";return;}const d=await api("/api/waypoints",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({points})});$("waypointInfo").textContent=JSON.stringify(d,null,2);}
+async function startWaypoints(){const d=await api("/api/waypoints/start",{method:"POST"});if(d)renderWaypoints(d);}
+async function stopWaypoints(){const d=await api("/api/waypoints/stop",{method:"POST"});if(d)renderWaypoints(d);}
+function renderWaypoints(w){if(!w)return;$("waypointStatus").textContent=w.running?"RUNNING":"STOPPED";$("waypointStatus").classList.toggle("active",!!w.running);$("waypointInfo").textContent=JSON.stringify(w,null,2);}
 async function patrolStart() { const d=await api("/api/patrol/start",{method:"POST"}); if(d) updatePatrol(d.patrol); }
 async function patrolStop() { const d=await api("/api/patrol/stop",{method:"POST"}); if(d) updatePatrol(d.patrol); }
 
@@ -281,6 +302,8 @@ async function refresh(){
  $("telemetry").textContent=JSON.stringify(d,null,2);
  renderTelemetry(d);
  if(d.patrol)updatePatrol(d.patrol);
+ if(d.vision)renderVision(d.vision);
+ if(d.waypoints)renderWaypoints(d.waypoints);
  if(d.ai_scan)updateScan(d.ai_scan);
 }
 async function refreshPlates(){
