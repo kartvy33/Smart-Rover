@@ -94,18 +94,18 @@ class WaypointPatrol:
                     time.sleep(1)
                     continue
                 # Course over ground is valid only while the rover is moving.
+                distance_cm = s.get("distance")
+                if isinstance(distance_cm, (int, float)) and 0 < distance_cm <= 25:
+                    raise RuntimeError("Obstacle detected; waypoint patrol stopped.")
                 course = s.get("course_deg")
                 speed = float(s.get("speed_kmph") or 0)
-                if course is None or speed < 0.8:
+                if course is None or float(course) < 0 or speed < 0.8:
                     set_command("FORWARD")
                     self.last_action = "ACQUIRE_GPS_COURSE"
                     time.sleep(0.35)
                     continue
                 bearing = _bearing(lat, lon, target["latitude"], target["longitude"])
                 error = _angle_error(bearing, float(course))
-                distance_cm = s.get("distance")
-                if isinstance(distance_cm, (int, float)) and 0 < distance_cm <= 25:
-                    raise RuntimeError("Obstacle detected; waypoint patrol stopped.")
                 if abs(error) > 25:
                     set_command("LEFT" if error < 0 else "RIGHT")
                     self.last_action = "CORRECT_HEADING"
