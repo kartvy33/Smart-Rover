@@ -9,6 +9,7 @@ import numpy as np
 import requests
 
 from database import add_plate_event, recent_plate_events
+from notifications import send_telegram_message
 
 try:
     from rapidocr import RapidOCR
@@ -163,6 +164,7 @@ def recognize_bytes(data, source="upload"):
             str(original),
             source,
         )
+        send_telegram_message("Smart Rover number plate detected: " + best["text"])
 
     return {
         "plate": best["text"] if best else None,
