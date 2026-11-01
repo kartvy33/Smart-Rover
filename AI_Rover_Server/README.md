@@ -64,3 +64,8 @@ GET /api/plate/events
 
 Integration note:
 The existing ESP32 firmware still needs to poll /api/rover/next-command and POST telemetry to /api/rover/status for the new laptop command path to drive the rover.
+
+
+## Software-only AI and waypoint upgrade
+
+See [AI_Rover_Server/SOFTWARE_UPGRADE.md](AI_Rover_Server/SOFTWARE_UPGRADE.md) for optional laptop-side YOLO vision, Telegram configuration, JARVIS API commands and experimental outdoor GPS waypoint patrol. Install optional vision dependencies from `AI_Rover_Server` with `pip install -r requirements-vision.txt`. Configure Telegram credentials only in your private local `.env`; never commit them. GPS waypoint navigation is experimental and must not be used indoors or near roads, people, stairs or drop-offs. Keep ultrasonic and cliff safety active.
