@@ -41,3 +41,5 @@ pre{margin:12px 0 0;padding:14px;max-height:310px;overflow:auto;white-space:pre-
 .rain-tile strong{font-size:25px}
 .environment-note{margin:13px 0 0;color:var(--muted);font-size:11px}
 @media(max-width:700px){.environment-grid{grid-template-columns:1fr}}
+
+.vision-card,.waypoint-card{min-width:0}.waypoint-card textarea{min-height:90px;resize:vertical;font-family:ui-monospace,monospace}.vision-card .history-row{padding:10px 12px}
