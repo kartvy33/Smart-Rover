@@ -10,6 +10,8 @@ from database import init_db, get_user
 from auth import create_account, authenticate, send_verification_email, login_required, operator_required, verify_user
 from rover import set_command, get_command, state, update_status
 from patrol import patrol
+from ai_vision import start as start_vision, stop as stop_vision, status as vision_status, events as vision_events
+from waypoint_patrol import waypoint_patrol
 from ai_plate import (
     recognize_bytes,
     recognize_camera,
@@ -92,6 +94,8 @@ def logout():
     session.clear()
     patrol.stop()
     stop_auto_scan()
+    stop_vision()
+    waypoint_patrol.stop()
     return jsonify({"ok": True})
 
 @app.get("/api/auth/me")
@@ -149,6 +153,8 @@ def rover_status():
     }
     if ai_enabled:
         payload["ai_scan"] = auto_scan_state()
+    payload["vision"] = vision_status()
+    payload["waypoints"] = waypoint_patrol.status()
     return jsonify(payload)
 
 @app.get("/api/preferences/ai-telemetry")
@@ -314,6 +320,61 @@ def plate_scan_stop():
 @operator_required
 def plate_scan_status():
     return jsonify({"ok": True, "scan": auto_scan_state()})
+
+
+@app.post("/api/vision/start")
+@operator_required
+def vision_start():
+    try:
+        started = start_vision()
+        return jsonify({"ok": True, "started": started, "vision": vision_status()})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 503
+
+@app.post("/api/vision/stop")
+@login_required
+def vision_stop():
+    stop_vision()
+    return jsonify({"ok": True, "vision": vision_status()})
+
+@app.get("/api/vision/status")
+@login_required
+def vision_get_status():
+    return jsonify({"ok": True, **vision_status()})
+
+@app.get("/api/vision/events")
+@operator_required
+def vision_get_events():
+    return jsonify({"ok": True, "events": vision_events()})
+
+@app.post("/api/waypoints")
+@operator_required
+def waypoint_configure():
+    try:
+        data = request.get_json(silent=True) or {}
+        return jsonify({"ok": True, **waypoint_patrol.configure(data.get("points"))})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+@app.post("/api/waypoints/start")
+@operator_required
+def waypoint_start():
+    try:
+        waypoint_patrol.start()
+        return jsonify({"ok": True, **waypoint_patrol.status()})
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+@app.post("/api/waypoints/stop")
+@login_required
+def waypoint_stop():
+    waypoint_patrol.stop()
+    return jsonify({"ok": True, **waypoint_patrol.status()})
+
+@app.get("/api/waypoints/status")
+@login_required
+def waypoint_status():
+    return jsonify({"ok": True, **waypoint_patrol.status()})
 
 @app.get("/media/<path:name>")
 @login_required
