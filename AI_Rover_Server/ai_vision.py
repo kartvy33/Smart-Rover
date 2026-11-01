@@ -32,6 +32,8 @@ _last_scan = 0.0
 _last_detections = []
 _events = deque(maxlen=100)
 _last_alert = {}
+_next_track_id = 1
+_previous_tracks = []
 
 
 def _load_model():
@@ -66,7 +68,7 @@ def _telegram(text, image_bytes=None):
 
 
 def scan_once():
-    global _last_error, _last_scan, _last_detections
+    global _last_error, _last_scan, _last_detections, _next_track_id, _previous_tracks
     response = requests.get(f"{CAMERA_BASE_URL}/capture", timeout=5)
     response.raise_for_status()
     frame = cv2.imdecode(np.frombuffer(response.content, np.uint8), cv2.IMREAD_COLOR)
@@ -89,6 +91,31 @@ def scan_once():
             "category": "person" if label == "person" else
                         "vehicle" if label in VEHICLES else "animal",
         })
+    # Lightweight IoU matching gives detections short-lived track IDs.
+    global _next_track_id, _previous_tracks
+    unmatched = list(_previous_tracks)
+    for detection in detections:
+        x1, y1, x2, y2 = detection['box']
+        best_index, best_iou = None, 0.0
+        for i, old in enumerate(unmatched):
+            if old['label'] != detection['label']:
+                continue
+            ox1, oy1, ox2, oy2 = old['box']
+            ix1, iy1 = max(x1, ox1), max(y1, oy1)
+            ix2, iy2 = min(x2, ox2), min(y2, oy2)
+            inter = max(0, ix2 - ix1) * max(0, iy2 - iy1)
+            area1 = max(0, x2 - x1) * max(0, y2 - y1)
+            area2 = max(0, ox2 - ox1) * max(0, oy2 - oy1)
+            union = area1 + area2 - inter
+            score = inter / union if union else 0.0
+            if score > best_iou:
+                best_index, best_iou = i, score
+        if best_index is not None and best_iou >= 0.2:
+            detection['track_id'] = unmatched.pop(best_index)['track_id']
+        else:
+            detection['track_id'] = _next_track_id
+            _next_track_id += 1
+    _previous_tracks = [{'label': d['label'], 'box': d['box'], 'track_id': d['track_id']} for d in detections]
     annotated = result.plot()
     ok, encoded = cv2.imencode(".jpg", annotated, [cv2.IMWRITE_JPEG_QUALITY, 82])
     annotated_bytes = encoded.tobytes() if ok else None
