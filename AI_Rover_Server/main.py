@@ -126,7 +126,7 @@ def command():
         (request.get_json(silent=True) or {}).get("command", "STOP")
     ).upper()
 
-    if patrol.running and command_name != "STOP":
+    if (patrol.running or waypoint_patrol.running) and command_name != "STOP":
         return jsonify({
             "ok": False,
             "error": "Stop autonomous patrol before manual driving.",
@@ -139,6 +139,7 @@ def command():
 @login_required
 def stop_api():
     patrol.stop()
+    waypoint_patrol.stop()
     return jsonify({"ok": True, "command": "STOP"})
 
 @app.get("/api/rover/status")
@@ -232,6 +233,8 @@ def jarvis_command():
         return jsonify({"ok": True, "action": "WAYPOINT_STOP", "waypoints": waypoint_patrol.status()})
 
     if command_name in {"patrol start", "start patrol", "auto patrol", "patrol"}:
+        if waypoint_patrol.running:
+            return jsonify({"ok": False, "error": "Stop GPS waypoint patrol first."}), 409
         patrol.start()
         return jsonify({"ok": True, "action": "PATROL_START", "patrol": patrol.status()})
 
@@ -253,7 +256,7 @@ def jarvis_command():
         "right": "RIGHT",
     }
     if command_name in commands:
-        if patrol.running:
+        if patrol.running or waypoint_patrol.running:
             return jsonify({"ok": False, "error": "Stop autonomous patrol before manual driving."}), 409
         set_command(commands[command_name])
         return jsonify({"ok": True, "action": commands[command_name], "command": get_command()})
@@ -266,6 +269,8 @@ def jarvis_command():
 @app.post("/api/patrol/start")
 @operator_required
 def patrol_start():
+    if waypoint_patrol.running:
+        return jsonify({"ok": False, "error": "Stop GPS waypoint patrol first."}), 409
     patrol.start()
     return jsonify({"ok": True, "patrol": patrol.status()})
 
@@ -383,6 +388,8 @@ def waypoint_configure():
 @operator_required
 def waypoint_start():
     try:
+        if patrol.running:
+            return jsonify({"ok": False, "error": "Stop timed patrol first."}), 409
         waypoint_patrol.start()
         return jsonify({"ok": True, **waypoint_patrol.status()})
     except Exception as exc:
