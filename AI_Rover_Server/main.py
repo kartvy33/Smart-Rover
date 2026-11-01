@@ -209,6 +209,28 @@ def jarvis_command():
     data = request.get_json(silent=True) or {}
     command_name = str(data.get("command", "")).strip().lower()
 
+    if command_name in {"vision start", "start vision", "start ai vision"}:
+        start_vision()
+        return jsonify({"ok": True, "action": "VISION_START", "vision": vision_status()})
+
+    if command_name in {"vision stop", "stop vision"}:
+        stop_vision()
+        return jsonify({"ok": True, "action": "VISION_STOP"})
+
+    if command_name in {"vision status", "what do you see", "camera analysis"}:
+        return jsonify({"ok": True, "vision": vision_status()})
+
+    if command_name in {"waypoint patrol start", "start waypoint patrol"}:
+        try:
+            waypoint_patrol.start()
+            return jsonify({"ok": True, "action": "WAYPOINT_START", "waypoints": waypoint_patrol.status()})
+        except Exception as exc:
+            return jsonify({"ok": False, "error": str(exc)}), 400
+
+    if command_name in {"waypoint patrol stop", "stop waypoint patrol"}:
+        waypoint_patrol.stop()
+        return jsonify({"ok": True, "action": "WAYPOINT_STOP", "waypoints": waypoint_patrol.status()})
+
     if command_name in {"patrol start", "start patrol", "auto patrol", "patrol"}:
         patrol.start()
         return jsonify({"ok": True, "action": "PATROL_START", "patrol": patrol.status()})
@@ -219,6 +241,7 @@ def jarvis_command():
 
     if command_name in {"stop", "emergency stop"}:
         patrol.stop()
+        waypoint_patrol.stop()
         set_command("STOP")
         return jsonify({"ok": True, "action": "STOP", "command": "STOP"})
 
