@@ -7,6 +7,7 @@ load_dotenv()
 from flask import Flask, jsonify, request, session, render_template, send_from_directory
 
 from database import init_db, get_user
+from notifications import send_telegram_message
 from auth import create_account, authenticate, send_verification_email, login_required, operator_required, verify_user
 from rover import set_command, get_command, state, update_status
 from patrol import patrol
@@ -30,6 +31,24 @@ init_db()
 def index():
     return render_template("dashboard.html")
 
+@app.get("/map")
+@login_required
+def map_page():
+    return render_template("map.html")
+
+@app.post("/api/map/selection")
+@login_required
+def map_selection():
+    data = request.get_json(silent=True) or {}
+    try:
+        lat, lon = float(data.get("latitude")), float(data.get("longitude"))
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            raise ValueError()
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "Valid coordinates required."}), 400
+    return jsonify({"ok": True, "latitude": lat, "longitude": lon,
+                    "message": "Point selected. It has not been added to a rover route."})
+
 @app.get("/login")
 def login_page():
     return render_template("auth.html")
@@ -50,6 +69,8 @@ def signup():
     )
     if error:
         return jsonify({"ok": False, "error": error}), 400
+
+    send_telegram_message("SMART ROVER SIGNUP\\nName: " + user["name"] + "\\nAccount ID: " + str(user["id"]) + "\\nEmail: " + user["email"] + "\\nMethod: Email/password\\nPassword and OTP are never shared.")
 
     try:
         send_verification_email(user, user["token"])
@@ -78,6 +99,7 @@ def login():
     session["user_id"] = user["id"]
     session["name"] = user["name"]
     session["role"] = user["role"]
+    send_telegram_message("SMART ROVER LOGIN\\nName: " + user["name"] + "\\nAccount ID: " + str(user["id"]) + "\\nEmail: " + user["email"] + "\\nMethod: Account ID/password\\nPassword and OTP are never shared.")
 
     return jsonify({
         "ok": True,
