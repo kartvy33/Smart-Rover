@@ -37,6 +37,13 @@ def init_db():
                 verification_token TEXT,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )""")
+        columns = {row[1] for row in db.execute("PRAGMA table_info(users)").fetchall()}
+        if "phone" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN phone TEXT")
+        if "phone_verified" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN phone_verified INTEGER NOT NULL DEFAULT 0")
+        if "auth_provider" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT NOT NULL DEFAULT 'password'")
         db.execute("""CREATE TABLE IF NOT EXISTS plate_events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             plate TEXT,
@@ -98,3 +105,22 @@ def recent_plate_events(limit=20):
     with connect() as db:
         return [dict(r) for r in db.execute(
             "SELECT * FROM plate_events ORDER BY id DESC LIMIT ?", (limit,)).fetchall()]
+
+def get_user_for_identity(user_id):
+    with connect() as db:
+        row = db.execute("SELECT id,name,email,role,email_verified,phone,phone_verified,auth_provider FROM users WHERE id=?", (user_id,)).fetchone()
+        return dict(row) if row else None
+
+def set_user_phone(user_id, phone):
+    with connect() as db:
+        db.execute("UPDATE users SET phone=? WHERE id=?", (phone, user_id))
+        db.commit()
+
+def verify_user_channel(user_id, channel):
+    column = "email_verified" if channel == "email" else "phone_verified"
+    if channel not in ("email", "sms"):
+        return False
+    with connect() as db:
+        cur = db.execute(f"UPDATE users SET {column}=1 WHERE id=?", (user_id,))
+        db.commit()
+        return cur.rowcount > 0
