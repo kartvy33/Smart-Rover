@@ -59,6 +59,8 @@ def finish_provider_login(provider, profile):
     name = (profile.get("name") or provider.title()).strip()
     if not email:
         return jsonify({"ok": False, "error": "The provider did not return an email address. Check its email permission."}), 400
+    if provider == "google" and not profile.get("email_verified"):
+        return jsonify({"ok": False, "error": "Google did not confirm this email address."}), 403
     user = find_user_by_email(email)
     if not user:
         user_id = create_user(name, email, hash_password(secrets.token_urlsafe(40)), "user", None)
