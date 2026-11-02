@@ -6,8 +6,9 @@ load_dotenv()
 
 from flask import Flask, jsonify, request, session, render_template, send_from_directory
 
-from database import init_db, get_user
+from database import init_db, get_user, get_user_for_identity, verify_user_channel
 from notifications import send_telegram_message
+from identity import init_identity_tables, create_otp, verify_otp, record_security_event, recent_security_events
 from auth import create_account, authenticate, send_verification_email, login_required, operator_required, verify_user
 from rover import set_command, get_command, state, update_status
 from patrol import patrol
@@ -26,6 +27,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 init_db()
+init_identity_tables()
 
 @app.get("/")
 def index():
@@ -99,6 +101,7 @@ def login():
     session["user_id"] = user["id"]
     session["name"] = user["name"]
     session["role"] = user["role"]
+    record_security_event(user["id"], "login", "account ID/password", request.remote_addr, request.headers.get("User-Agent", ""))
     send_telegram_message("SMART ROVER LOGIN\\nName: " + user["name"] + "\\nAccount ID: " + str(user["id"]) + "\\nEmail: " + user["email"] + "\\nMethod: Account ID/password\\nPassword and OTP are never shared.")
 
     return jsonify({
@@ -110,6 +113,48 @@ def login():
             "role": user["role"],
         },
     })
+
+@app.post("/api/auth/otp/send")
+def send_identity_otp():
+    data = request.get_json(silent=True) or {}
+    user = get_user_for_identity(data.get("account_id"))
+    if not user:
+        return jsonify({"ok": False, "error": "Account not found."}), 404
+    channel = data.get("channel", "email")
+    if channel == "email":
+        destination = user["email"]
+    elif channel == "sms":
+        destination = user.get("phone")
+        if not destination:
+            return jsonify({"ok": False, "error": "No phone number is saved for this account."}), 400
+    else:
+        return jsonify({"ok": False, "error": "Choose email or sms."}), 400
+    try:
+        create_otp(user["id"], channel, destination)
+    except Exception:
+        app.logger.exception("OTP delivery failed")
+        return jsonify({"ok": False, "error": "Could not send the code. Check server configuration."}), 503
+    return jsonify({"ok": True, "message": "Code sent. It expires in 10 minutes."})
+
+@app.post("/api/auth/otp/verify")
+def verify_identity_otp():
+    data = request.get_json(silent=True) or {}
+    user = get_user_for_identity(data.get("account_id"))
+    if not user:
+        return jsonify({"ok": False, "error": "Account not found."}), 404
+    channel = data.get("channel", "email")
+    if channel not in ("email", "sms"):
+        return jsonify({"ok": False, "error": "Choose email or sms."}), 400
+    if not verify_otp(user["id"], channel, str(data.get("code", ""))):
+        return jsonify({"ok": False, "error": "Invalid or expired code."}), 400
+    verify_user_channel(user["id"], channel)
+    record_security_event(user["id"], channel + "_verified", channel, request.remote_addr, request.headers.get("User-Agent", ""))
+    return jsonify({"ok": True, "message": channel.capitalize() + " verified."})
+
+@app.get("/api/admin/security-events")
+@operator_required
+def admin_security_events():
+    return jsonify({"ok": True, "events": recent_security_events(100)})
 
 @app.post("/api/auth/logout")
 def logout():
