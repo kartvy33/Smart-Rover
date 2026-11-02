@@ -6,7 +6,7 @@ load_dotenv()
 
 from flask import Flask, jsonify, request, session, render_template, send_from_directory, redirect, url_for
 
-from database import init_db, get_user, get_user_for_identity, verify_user_channel, find_user_by_email, create_user, set_user_provider
+from database import init_db, get_user, get_user_for_identity, verify_user_channel, find_user_by_email, create_user, set_user_provider, set_user_phone
 from notifications import send_telegram_message
 from identity import init_identity_tables, create_otp, verify_otp, record_security_event, recent_security_events
 from auth import create_account, authenticate, send_verification_email, login_required, operator_required, verify_user, hash_password
@@ -158,7 +158,7 @@ def map_selection():
 
 @app.get("/login")
 def login_page():
-    return render_template("auth.html")
+    return render_template("auth.html", telegram_bot_username=os.getenv("TELEGRAM_BOT_USERNAME", ""))
 
 @app.get("/verify-email")
 def verify_email():
@@ -177,6 +177,12 @@ def signup():
     if error:
         return jsonify({"ok": False, "error": error}), 400
 
+    phone = str(data.get("phone", "")).strip()
+    if phone:
+        if len(phone) < 8 or len(phone) > 20:
+            return jsonify({"ok": False, "error": "Enter a phone number with country code."}), 400
+        set_user_phone(user["id"], phone)
+    record_security_event(user["id"], "signup", "email/password", request.remote_addr, request.headers.get("User-Agent", ""))
     send_telegram_message("SMART ROVER SIGNUP\\nName: " + user["name"] + "\\nAccount ID: " + str(user["id"]) + "\\nEmail: " + user["email"] + "\\nMethod: Email/password\\nPassword and OTP are never shared.")
 
     try:
