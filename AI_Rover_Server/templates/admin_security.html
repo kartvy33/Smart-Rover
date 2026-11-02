@@ -1,0 +1,7 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Smart Rover Security Events</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><main class="card"><h1>Security activity</h1><p class="muted">Recent account security events only. This page does not record keystrokes or private messages.</p><button onclick="loadEvents()">Refresh</button><pre id="events">Loading…</pre></main>
+<script>
+async function loadEvents(){const response=await fetch("/api/admin/security-events");const data=await response.json();if(!data.ok){events.textContent=data.error||"Unable to load events";return;}events.textContent=data.events.map(e=>[e.created_at,e.event,e.name||"Unknown user",e.email||"",e.method||"",e.ip_address||""].join(" | ")).join("\n")||"No events yet";}
+loadEvents();
+</script></body></html>
