@@ -168,6 +168,9 @@ def verify_email():
 @app.post("/api/auth/signup")
 def signup():
     data = request.get_json(silent=True) or {}
+    phone = str(data.get("phone", "")).strip()
+    if phone and (len(phone) < 8 or len(phone) > 20):
+        return jsonify({"ok": False, "error": "Enter a phone number with country code."}), 400
     user, error = create_account(
         data.get("name"),
         data.get("email"),
@@ -176,11 +179,7 @@ def signup():
     )
     if error:
         return jsonify({"ok": False, "error": error}), 400
-
-    phone = str(data.get("phone", "")).strip()
     if phone:
-        if len(phone) < 8 or len(phone) > 20:
-            return jsonify({"ok": False, "error": "Enter a phone number with country code."}), 400
         set_user_phone(user["id"], phone)
     record_security_event(user["id"], "signup", "email/password", request.remote_addr, request.headers.get("User-Agent", ""))
     send_telegram_message("SMART ROVER SIGNUP\\nName: " + user["name"] + "\\nAccount ID: " + str(user["id"]) + "\\nEmail: " + user["email"] + "\\nMethod: Email/password\\nPassword and OTP are never shared.")
