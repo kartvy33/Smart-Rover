@@ -124,3 +124,13 @@ def verify_user_channel(user_id, channel):
         cur = db.execute(f"UPDATE users SET {column}=1 WHERE id=?", (user_id,))
         db.commit()
         return cur.rowcount > 0
+
+def set_user_provider(user_id, provider):
+    with connect() as db:
+        db.execute("UPDATE users SET auth_provider=?, email_verified=1 WHERE id=?", (provider, user_id))
+        db.commit()
+
+def find_user_by_email(email):
+    with connect() as db:
+        row = db.execute("SELECT * FROM users WHERE lower(email)=lower(?) ORDER BY id ASC LIMIT 1", (email,)).fetchone()
+        return row
