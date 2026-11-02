@@ -4,12 +4,16 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, jsonify, request, session, render_template, send_from_directory
+from flask import Flask, jsonify, request, session, render_template, send_from_directory, redirect, url_for
 
-from database import init_db, get_user, get_user_for_identity, verify_user_channel
+from database import init_db, get_user, get_user_for_identity, verify_user_channel, find_user_by_email, create_user, set_user_provider
 from notifications import send_telegram_message
 from identity import init_identity_tables, create_otp, verify_otp, record_security_event, recent_security_events
-from auth import create_account, authenticate, send_verification_email, login_required, operator_required, verify_user
+from auth import create_account, authenticate, send_verification_email, login_required, operator_required, verify_user, hash_password
+from authlib.integrations.flask_client import OAuth
+import hashlib
+import hmac
+import time
 from rover import set_command, get_command, state, update_status
 from patrol import patrol
 from ai_vision import start as start_vision, stop as stop_vision, status as vision_status, events as vision_events
@@ -28,6 +32,107 @@ app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
 app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 init_db()
 init_identity_tables()
+
+
+oauth = OAuth(app)
+if os.getenv("GOOGLE_CLIENT_ID") and os.getenv("GOOGLE_CLIENT_SECRET"):
+    oauth.register(
+        name="google",
+        client_id=os.getenv("GOOGLE_CLIENT_ID"),
+        client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_kwargs={"scope": "openid email profile"},
+    )
+if os.getenv("FACEBOOK_CLIENT_ID") and os.getenv("FACEBOOK_CLIENT_SECRET"):
+    oauth.register(
+        name="facebook",
+        client_id=os.getenv("FACEBOOK_CLIENT_ID"),
+        client_secret=os.getenv("FACEBOOK_CLIENT_SECRET"),
+        authorize_url="https://www.facebook.com/v20.0/dialog/oauth",
+        access_token_url="https://graph.facebook.com/v20.0/oauth/access_token",
+        api_base_url="https://graph.facebook.com/v20.0/",
+        client_kwargs={"scope": "email public_profile"},
+    )
+
+def finish_provider_login(provider, profile):
+    email = (profile.get("email") or "").strip().lower()
+    name = (profile.get("name") or provider.title()).strip()
+    if not email:
+        return jsonify({"ok": False, "error": "The provider did not return an email address. Check its email permission."}), 400
+    user = find_user_by_email(email)
+    if not user:
+        user_id = create_user(name, email, hash_password(secrets.token_urlsafe(40)), "user", None)
+        set_user_provider(user_id, provider)
+        user = get_user(user_id)
+    else:
+        set_user_provider(user["id"], provider)
+        user = get_user(user["id"])
+    session.clear()
+    session["user_id"] = user["id"]
+    session["name"] = user["name"]
+    session["role"] = user["role"]
+    record_security_event(user["id"], "login", provider, request.remote_addr, request.headers.get("User-Agent", ""))
+    send_telegram_message("SMART ROVER LOGIN\\nName: " + user["name"] + "\\nAccount ID: " + str(user["id"]) + "\\nMethod: " + provider)
+    return redirect("/")
+
+@app.get("/auth/google")
+def google_login():
+    if not os.getenv("GOOGLE_CLIENT_ID") or not os.getenv("GOOGLE_CLIENT_SECRET"):
+        return jsonify({"ok": False, "error": "Google sign-in is not configured."}), 503
+    return oauth.google.authorize_redirect(url_for("google_callback", _external=True))
+
+@app.get("/auth/google/callback")
+def google_callback():
+    token = oauth.google.authorize_access_token()
+    profile = token.get("userinfo")
+    if not profile:
+        profile = oauth.google.get("https://openidconnect.googleapis.com/v1/userinfo").json()
+    return finish_provider_login("google", profile)
+
+@app.get("/auth/facebook")
+def facebook_login():
+    if not os.getenv("FACEBOOK_CLIENT_ID") or not os.getenv("FACEBOOK_CLIENT_SECRET"):
+        return jsonify({"ok": False, "error": "Facebook sign-in is not configured."}), 503
+    return oauth.facebook.authorize_redirect(url_for("facebook_callback", _external=True))
+
+@app.get("/auth/facebook/callback")
+def facebook_callback():
+    oauth.facebook.authorize_access_token()
+    profile = oauth.facebook.get("me?fields=id,name,email").json()
+    return finish_provider_login("facebook", profile)
+
+@app.post("/api/auth/telegram")
+def telegram_login():
+    data = request.get_json(silent=True) or {}
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    supplied_hash = str(data.pop("hash", ""))
+    if not bot_token or not supplied_hash:
+        return jsonify({"ok": False, "error": "Telegram login is not configured."}), 503
+    auth_date = int(data.get("auth_date", 0) or 0)
+    if auth_date < int(time.time()) - 86400 or auth_date > int(time.time()) + 60:
+        return jsonify({"ok": False, "error": "Telegram login data expired."}), 400
+    check_string = "\\n".join(f"{key}={data[key]}" for key in sorted(data))
+    secret_key = hashlib.sha256(bot_token.encode("utf-8")).digest()
+    expected_hash = hmac.new(secret_key, check_string.encode("utf-8"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected_hash, supplied_hash):
+        return jsonify({"ok": False, "error": "Telegram signature verification failed."}), 401
+    telegram_id = str(data.get("id", "")).strip()
+    if not telegram_id.isdigit():
+        return jsonify({"ok": False, "error": "Telegram account ID is missing."}), 400
+    email = "telegram_" + telegram_id + "@telegram.local"
+    user = find_user_by_email(email)
+    if not user:
+        name = " ".join(part for part in [str(data.get("first_name", "")), str(data.get("last_name", ""))] if part).strip() or "Telegram user"
+        user_id = create_user(name, email, hash_password(secrets.token_urlsafe(40)), "user", None)
+        set_user_provider(user_id, "telegram")
+        user = get_user(user_id)
+    session.clear()
+    session["user_id"] = user["id"]
+    session["name"] = user["name"]
+    session["role"] = user["role"]
+    record_security_event(user["id"], "login", "telegram", request.remote_addr, request.headers.get("User-Agent", ""))
+    send_telegram_message("SMART ROVER LOGIN\\nName: " + user["name"] + "\\nAccount ID: " + str(user["id"]) + "\\nMethod: Telegram")
+    return jsonify({"ok": True, "message": "Telegram login successful.", "redirect": "/"})
 
 @app.get("/")
 def index():
