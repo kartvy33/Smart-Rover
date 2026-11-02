@@ -262,6 +262,11 @@ def verify_identity_otp():
     record_security_event(user["id"], channel + "_verified", channel, request.remote_addr, request.headers.get("User-Agent", ""))
     return jsonify({"ok": True, "message": channel.capitalize() + " verified."})
 
+@app.get("/admin/security")
+@operator_required
+def admin_security_page():
+    return render_template("admin_security.html")
+
 @app.get("/api/admin/security-events")
 @operator_required
 def admin_security_events():
