@@ -9,7 +9,7 @@
 <hr>
 <section><h2>Verify account</h2><input id="verifyAccountId" type="number" min="1" placeholder="Account ID"><select id="verifyChannel"><option value="email">Email code</option><option value="sms">SMS code</option></select><button onclick="sendOtp()">Send verification code</button><input id="verifyCode" inputmode="numeric" maxlength="6" placeholder="6-digit code"><button onclick="verifyOtp()">Verify code</button></section>
 <hr>
-<section><h2>Other sign-in methods</h2><p class="muted small">Google, Facebook and Telegram sign-in will appear here after provider credentials and callback URLs are configured. Instagram personal accounts are not supported as a general login provider.</p></section>
+<section><h2>Other sign-in methods</h2><p><a href="/auth/google">Continue with Google</a></p><p><a href="/auth/facebook">Continue with Facebook</a></p>{% if telegram_bot_username %}<script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="{{ telegram_bot_username }}" data-size="large" data-userpic="false" data-onauth="onTelegramAuth(user)" data-request-access="write"></script>{% else %}<p class="muted small">Telegram sign-in requires TELEGRAM_BOT_USERNAME in .env.</p>{% endif %}<p class="muted small">Instagram personal accounts are not supported as a general login provider.</p></section>
 <pre id="authMessage"></pre></main>
 <script>
 async function post(url,body){const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return await r.json();}
@@ -17,4 +17,5 @@ async function login(){const d=await post("/api/auth/login",{account_id:loginId.
 async function signup(){const d=await post("/api/auth/signup",{name:signupName.value,email:signupEmail.value,phone:signupPhone.value,password:signupPassword.value,enrollment_code:signupCode.value});authMessage.textContent=d.ok?(d.message+" Save your Account ID."): "Error: "+d.error;if(d.ok){verifyAccountId.value=d.id;}}
 async function sendOtp(){const d=await post("/api/auth/otp/send",{account_id:verifyAccountId.value,channel:verifyChannel.value});authMessage.textContent=d.message||d.error;}
 async function verifyOtp(){const d=await post("/api/auth/otp/verify",{account_id:verifyAccountId.value,channel:verifyChannel.value,code:verifyCode.value});authMessage.textContent=d.message||d.error;}
+async function onTelegramAuth(user){const d=await post("/api/auth/telegram",user);authMessage.textContent=d.message||d.error;if(d.ok)location=d.redirect||"/";}
 </script></body></html>
