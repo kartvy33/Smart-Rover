@@ -9,6 +9,7 @@ import os
 import secrets
 import sqlite3
 import time
+from contextlib import contextmanager
 from email.message import EmailMessage
 import smtplib
 
@@ -45,10 +46,14 @@ def init_identity_tables():
         db.commit()
 
 
+@contextmanager
 def _connect():
     db = sqlite3.connect(DB_PATH)
     db.row_factory = sqlite3.Row
-    return db
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def _code_digest(code, salt):
